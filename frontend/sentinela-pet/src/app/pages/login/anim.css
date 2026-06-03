@@ -1,0 +1,128 @@
+/* Animação de entrada do card */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.login-card { animation: fadeIn 0.7s ease-in-out forwards; }
+
+/* Animação de saída da página */
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+body.fade-out {
+    animation: fadeOut 0.5s ease-out forwards;
+}
+
+/* Efeito sutil no botão */
+.btn-login {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.btn-login:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Animação de Texto Dinâmico (Flipping Text) */
+.subheader-container {
+    color: #6c757d;
+    height: 45px;
+    overflow: hidden;
+    text-align: center;
+}
+.subheader-flip {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    animation: show 8s linear infinite;
+}
+.subheader-flip li {
+    padding: 4px 12px;
+    height: 45px;
+    margin-bottom: 45px;
+    display: block;
+}
+.subheader-flip li span {
+    background: #a855f7;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+.subheader-flip li:nth-child(2) span { background: #22c55e; }
+.subheader-flip li:nth-child(3) span { background: #3b82f6; }
+
+@keyframes show {
+    0% { margin-top: -270px; }
+    5% { margin-top: -180px; }
+    33% { margin-top: -180px; }
+    38% { margin-top: -90px; }
+    66% { margin-top: -90px; }
+    71% { margin-top: 0px; }
+    99.99% { margin-top: 0px; }
+    100% { margin-top: -270px; }
+}
+
+/* Animação Ilustrativa (Ponto de Interrogação) */
+.login-image-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+.questify-animation-container {
+    position: relative;
+    width: 150px;
+    height: 200px;
+    animation: bobbing-effect 4s ease-in-out infinite;
+}
+.question-mark {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: 20px solid #a855f7;
+    border-radius: 50%;
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(-45deg);
+    left: 25px;
+    top: 0;
+}
+.question-mark::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 60px;
+    background: #a855f7;
+    bottom: -70px;
+    left: 40px;
+    transform: rotate(45deg);
+}
+.question-dot {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background: #a855f7;
+    border-radius: 50%;
+    bottom: 0;
+    left: 57px;
+}
+.sparkle {
+    position: absolute;
+    background-color: #facc15;
+    border-radius: 50%;
+    animation: sparkle-effect 2s ease-in-out infinite;
+}
+.sparkle1 { width: 10px; height: 10px; top: 10%; left: 10%; animation-delay: 0s; }
+.sparkle2 { width: 15px; height: 15px; top: 20%; right: 5%; animation-delay: 0.5s; }
+.sparkle3 { width: 8px; height: 8px; bottom: 30%; left: 5%; animation-delay: 1s; }
+.sparkle4 { width: 12px; height: 12px; bottom: 10%; right: 15%; animation-delay: 1.5s; }
+
+@keyframes bobbing-effect {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+@keyframes sparkle-effect {
+    0%, 100% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1); opacity: 1; }
+}

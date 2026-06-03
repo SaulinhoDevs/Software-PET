@@ -1,0 +1,87 @@
+:root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --accent-color: #ff6b6b;
+            --text-color: #495057;
+            --bg-color: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-card-header {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+
+        .login-card-subheader {
+            font-size: 1rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+
+        .form-control {
+            border-radius: 0.75rem;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(37, 117, 252, 0.25);
+        }
+
+        .btn-login {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.8rem;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn-login:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 117, 252, 0.4);
+        }
+
+        .signup-link {
+            color: var(--secondary-color);
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .signup-link:hover {
+            text-decoration: underline;
+        }
+
+        .login-image-section {
+            background-image: url('https://placehold.co/800x1200/6a11cb/FFFFFF?text=Questify&font=nunito'), linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background-size: cover;
+            background-position: center;
+        }
+
+        @media (min-width: 768px) {
+            .login-card-header {
+                font-size: 3rem;
+            }
+        }
