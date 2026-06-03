@@ -1,12 +1,22 @@
 package com.pet.buscaativa.entities;
 
 import com.pet.buscaativa.entities.enums.TipoUsuario;
+import com.pet.buscaativa.entities.enums.UnidadeAtuacao;
+
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 @Table(name = "tb_usuario")
 public class Usuario implements Serializable {
 
@@ -21,15 +31,8 @@ public class Usuario implements Serializable {
 
     private Integer tipoUsuario;
 
-    public Usuario() {
-    }
+    private Integer unidadeAtuacao;
 
-    public Usuario(Long id, String email, String senha, TipoUsuario tipoUsuario) {
-        this.id = id;
-        this.email = email;
-        this.senha = senha;
-        setTipoUsuario(tipoUsuario);
-    }
 
     public Long getId() {
         return id;
@@ -64,6 +67,17 @@ public class Usuario implements Serializable {
             this.tipoUsuario = tipoUsuario.getCodigo();
         }
     }
+
+    public UnidadeAtuacao getUnidadeAtuacao(){
+        return UnidadeAtuacao.valueOf(unidadeAtuacao);
+    }
+
+    public void setUnidadeAtuacao(UnidadeAtuacao unidadeAtuacao) {
+        if (unidadeAtuacao != null) {
+            this.unidadeAtuacao = unidadeAtuacao.getCodigo();
+        }
+    }
+
 
     @Override
     public boolean equals(Object o) {

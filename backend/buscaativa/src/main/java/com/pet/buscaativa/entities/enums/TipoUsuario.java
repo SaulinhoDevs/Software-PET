@@ -30,4 +30,5 @@ public enum TipoUsuario {
         }
         throw new IllegalArgumentException("Código de Usuário Inválido!");
     }
+
 }
