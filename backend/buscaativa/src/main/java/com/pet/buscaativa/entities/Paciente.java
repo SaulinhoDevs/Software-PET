@@ -1,0 +1,76 @@
+package com.pet.buscaativa.entities;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Objects;
+
+import com.pet.buscaativa.entities.enums.SexoEnum;
+import com.pet.buscaativa.entities.enums.StatusPaciente;
+import com.pet.buscaativa.entities.enums.RacaCorEnum;
+import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Table(name = "tb_paciente")
+public class Paciente implements Serializable{
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nome;
+    private String nomeMae;
+    private LocalDate dataNascimento;
+    private LocalDate dataUltimaPresenca;
+    private SexoEnum sexo;
+    private RacaCorEnum racacor;
+    private String CNS;
+    private String CPF;
+    private String telefone;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "endereco_id")
+    private Endereco endereco;
+    
+    private boolean situacaoRua;
+    private TipoAcompanhamento tipoAcompanhamento;
+    private int countFaltas;
+    private StatusPaciente statusPaciente;
+
+    @ManyToOne
+    @JoinColumn(name = "usf_cnes")
+    private UsfReferencia usfReferencia;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Paciente paciente = (Paciente) o;
+        return Objects.equals(id, paciente.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+}
