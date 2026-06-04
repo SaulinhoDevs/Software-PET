@@ -1,7 +1,7 @@
 :root {
-  --primary-color: #001F52;
-  --secondary-color: #003FA3;
-  --tertiary-color: #005BF0;
+  --primary-color: #001f52;
+  --secondary-color: #003fa3;
+  --tertiary-color: #005bf0;
   --accent-color: #ff6b6b;
   --text-color: #495057;
   --bg-color: #f0f2f5;
@@ -76,9 +76,19 @@ body {
 }
 
 .login-image-section {
-  background-image: url('https://placehold.co/800x1200/004ECC/FFFFFF?text=SIBRAPS&font=nunito');
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #005bf0 0%, #003fa3 50%, #002f7a 100%);
   background-size: cover;
   background-position: center;
+}
+
+.logo-text {
+  color: white;
+  font-size: 4rem;
+  font-weight: 900;
+  font-family: 'Nunito', sans-serif;
 }
 
 /* Animação de entrada do card */
