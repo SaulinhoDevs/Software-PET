@@ -11,10 +11,10 @@
   flex-direction: column;
   height: 100%;
   width: 256px;
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  background: linear-gradient(135deg, #005bf0 0%, #001f52 100%);
   transition: all 0.3s ease;
   overflow: hidden;
-  box-shadow: 4px 0 24px rgba(91, 43, 181, 0.3);
+  box-shadow: 4px 0 24px rgba(0, 31, 82, 0.3);
   position: relative;
 }
 

@@ -7,20 +7,20 @@ import { Component, OnInit } from '@angular/core';
   styleUrl: './header.css',
 })
 export class Header implements OnInit {
-  userName = 'Saulo Melo'; // futuramente virá do serviço de auth
+  userName = 'Nome do Usuário'; // futuramente virá do serviço de auth
   userInitials = '';
   avatarColor = '';
 
   // Paleta de cores para o avatar
   private colors = [
-    '#7c3aed',
-    '#5b21b6',
-    '#4f46e5',
-    '#0891b2',
-    '#059669',
-    '#d97706',
-    '#dc2626',
-    '#db2777',
+    '#005bf0',
+    '#004ecc',
+    '#003fa3',
+    '#002f7a',
+    '#001f52',
+    '#1d4ed8',
+    '#2563eb',
+    '#3b82f6',
   ];
 
   ngOnInit() {
