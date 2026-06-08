@@ -1,0 +1,72 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.856);
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ===== BOTÃO HAMBURGUER ===== */
+.mobile-toggle {
+  display: none; /* escondido no desktop */
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(106, 17, 203, 0.4);
+  transition: all 0.3s ease;
+}
+
+.mobile-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(106, 17, 203, 0.5);
+}
+
+/* ===== OVERLAY MOBILE ===== */
+.sidebar-overlay {
+  display: none; /* escondido no desktop */
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  cursor: pointer;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  /* Mostra o botão hamburguer */
+  .mobile-toggle {
+    display: block;
+  }
+
+  /* Mostra o overlay */
+  .sidebar-overlay {
+    display: block;
+  }
+
+  /* Padding menor no mobile */
+  .content-area {
+    padding: 16px;
+  }
+}

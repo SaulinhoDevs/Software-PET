@@ -1,0 +1,38 @@
+<aside class="sidebar">
+  <!-- Logo Space -->
+  <div class="logo-container">
+    <svg width="100%" viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg">
+
+      <g transform="translate(290, 18)">
+        <rect x="0" y="30" width="62" height="52" rx="8" fill="none" stroke="#ffffff" stroke-width="2.8" />
+        <path d="M14 30 Q14 4 31 4 Q48 4 48 30" fill="none" stroke="#ffffff" stroke-width="2.8"
+          stroke-linecap="round" />
+        <line x1="0" y1="50" x2="62" y2="50" stroke="rgba(255,255,255,0.35)" stroke-width="1.4" />
+      </g>
+
+      <text x="340" y="130" text-anchor="middle" dominant-baseline="central"
+        font-family="'Playfair Display', Georgia, serif" font-size="56" font-weight="700" fill="#ffffff"
+        letter-spacing="8">LOJINHA</text>
+
+      <line x1="200" y1="158" x2="480" y2="158" stroke="rgba(255,255,255,0.25)" stroke-width="0.8" />
+
+      <text x="340" y="182" text-anchor="middle" dominant-baseline="central" font-family="Georgia, serif" font-size="22"
+        fill="rgba(255,255,255,0.45)" letter-spacing="2">SEU ASSISTENTE!</text>
+
+    </svg>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav-menu">
+    <a *ngFor="let item of menuItems" [routerLink]="item.route" class="nav-link">
+      <span class="nav-label">{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <!-- Logout -->
+  <div class="logout-container">
+    <button (click)="logout()" class="logout-btn">
+      <span class="nav-label">Sair</span>
+    </button>
+  </div>
+</aside>
