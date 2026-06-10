@@ -2,6 +2,7 @@ package com.pet.buscaativa.services.impl;
 
 import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.dto.PacienteDTO;
+import com.pet.buscaativa.entities.enums.StatusPaciente;
 import com.pet.buscaativa.mapping.PacienteMapper;
 import com.pet.buscaativa.repositories.PacienteRepository;
 import com.pet.buscaativa.services.PacienteService;
@@ -31,29 +32,26 @@ public class PacienteServiceImpl implements PacienteService{
             pacienteSalvar = pacienteRepository.findById(pacienteDTO.id())
                     .orElseThrow(() -> new DatabaseException("Paciente não encontrado!"));
 
-            pacienteSalvar.setNome(pacienteDTO.nome());
-            pacienteSalvar.setNomeMae(pacienteDTO.nomeMae());
-            pacienteSalvar.setDataNascimento(pacienteDTO.dataNascimento());
-            pacienteSalvar.setDataUltimaPresenca(pacienteDTO.dataUltimaPresenca());
-            pacienteSalvar.setSexo(pacienteDTO.sexo());
-            pacienteSalvar.setRacacor(pacienteDTO.racacor());
-            pacienteSalvar.setCNS(pacienteDTO.CNS());
-            pacienteSalvar.setCPF(pacienteDTO.CPF());
-            pacienteSalvar.setTelefone(pacienteDTO.telefone());
-            pacienteSalvar.setEndereco(pacienteDTO.endereco());
-            pacienteSalvar.setSituacaoRua(pacienteDTO.situacaoRua());
-            pacienteSalvar.setTipoAcompanhamento(pacienteDTO.tipoAcompanhamento());
-            pacienteSalvar.setCountFaltas(pacienteDTO.countFaltas());
-            pacienteSalvar.setStatusPaciente(pacienteDTO.statusPaciente());
-            pacienteSalvar.setUsfReferencia(pacienteDTO.usfReferencia());
+            pacienteMapper.updatePacienteFromDTO(pacienteDTO, pacienteSalvar);
         }else{
             pacienteSalvar = pacienteMapper.toPacienteEntity(pacienteDTO);
+
+            pacienteSalvar.setStatusPaciente(StatusPaciente.ATIVO);
         }
 
         pacienteSalvar = pacienteRepository.save(pacienteSalvar);
 
         return pacienteMapper.toPacienteDTO(pacienteSalvar);
 
+    }
+    @Override
+    public void inativarPaciente(Long id) {
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(() -> new DatabaseException("Paciente não encontrado!"));
+
+        paciente.setStatusPaciente(StatusPaciente.INATIVO);
+
+        pacienteRepository.save(paciente);
     }
 
     @Override
@@ -70,4 +68,6 @@ public class PacienteServiceImpl implements PacienteService{
                 .map(PacienteDTO::new)
                 .toList();
     }
+
+    
 }

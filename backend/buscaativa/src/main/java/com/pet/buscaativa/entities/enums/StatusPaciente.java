@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum StatusPaciente {
 
-    ALTA_TERAPEUTICA(1),
-    TRANSFERIDO(2),
-    ABANDONO_TRATAMENTO(3),
-    OBITO(4),
-    OUTRO(5),
-    INATIVO(6);
+    ATIVO(1),
+    ALTA_TERAPEUTICA(2),
+    TRANSFERIDO(3),
+    ABANDONO_TRATAMENTO(4),
+    OBITO(5),
+    OUTRO(6),
+    INATIVO(7);
 
     private int codigo;
 

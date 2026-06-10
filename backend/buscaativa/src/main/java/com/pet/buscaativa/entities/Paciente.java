@@ -10,7 +10,6 @@ import com.pet.buscaativa.entities.enums.RacaCorEnum;
 import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -51,7 +50,7 @@ public class Paciente implements Serializable{
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
-    
+
     private boolean situacaoRua;
     private TipoAcompanhamento tipoAcompanhamento;
     private int countFaltas;

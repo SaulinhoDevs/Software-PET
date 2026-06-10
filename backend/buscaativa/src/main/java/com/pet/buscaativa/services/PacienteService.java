@@ -12,7 +12,7 @@ public interface PacienteService {
 
 
     List<PacienteDTO> findAll();
-
     PacienteDTO findById(Long id);
+    void inativarPaciente(Long id);
 
 }
