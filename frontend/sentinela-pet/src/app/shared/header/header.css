@@ -20,7 +20,7 @@
 }
 
 /* Botão Assistente Virtual */
-.assistant-btn {
+.componente-exportacao {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -37,15 +37,10 @@
   text-decoration: none;
 }
 
-.assistant-btn:hover {
+.componente-exportacao:hover {
   background: rgba(255, 255, 255, 0.22);
   border-color: rgba(255, 255, 255, 0.45);
   transform: translateY(-1px);
-}
-
-.assistant-icon {
-  font-size: 0.85rem;
-  opacity: 0.9;
 }
 
 /* Profile */

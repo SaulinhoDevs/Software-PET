@@ -3,21 +3,48 @@
   <div class="logo-container">
     <svg width="100%" viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg">
 
-      <g transform="translate(290, 18)">
-        <rect x="0" y="30" width="62" height="52" rx="8" fill="none" stroke="#ffffff" stroke-width="2.8" />
-        <path d="M14 30 Q14 4 31 4 Q48 4 48 30" fill="none" stroke="#ffffff" stroke-width="2.8"
-          stroke-linecap="round" />
-        <line x1="0" y1="50" x2="62" y2="50" stroke="rgba(255,255,255,0.35)" stroke-width="1.4" />
+      <g transform="translate(260,5) scale(1.2)">
+
+        <!-- Coração -->
+        <path d="
+      M35 35
+      C35 15 10 15 10 35
+      C10 55 35 75 35 75
+      C35 75 60 55 60 35
+      C60 15 35 15 35 35
+    " fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+
+        <!-- Seringa -->
+        <g transform="translate(85,15) rotate(-25)">
+
+          <!-- Corpo -->
+          <rect x="0" y="0" width="42" height="12" rx="2" fill="none" stroke="#ffffff" stroke-width="2.2" />
+
+          <!-- Êmbolo -->
+          <line x1="-12" y1="6" x2="0" y2="6" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+
+          <line x1="-8" y1="0" x2="-8" y2="12" stroke="#ffffff" stroke-width="2.2" />
+
+          <!-- Agulha -->
+          <line x1="42" y1="6" x2="60" y2="6" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+
+          <!-- Marcações -->
+          <line x1="10" y1="2" x2="10" y2="10" stroke="#ffffff" stroke-width="1" />
+          <line x1="18" y1="2" x2="18" y2="10" stroke="#ffffff" stroke-width="1" />
+          <line x1="26" y1="2" x2="26" y2="10" stroke="#ffffff" stroke-width="1" />
+
+        </g>
+
       </g>
 
       <text x="340" y="130" text-anchor="middle" dominant-baseline="central"
         font-family="'Playfair Display', Georgia, serif" font-size="56" font-weight="700" fill="#ffffff"
-        letter-spacing="8">LOJINHA</text>
+        letter-spacing="8">SIBRAPS</text>
 
       <line x1="200" y1="158" x2="480" y2="158" stroke="rgba(255,255,255,0.25)" stroke-width="0.8" />
 
       <text x="340" y="182" text-anchor="middle" dominant-baseline="central" font-family="Georgia, serif" font-size="22"
-        fill="rgba(255,255,255,0.45)" letter-spacing="2">SEU ASSISTENTE!</text>
+        fill="rgba(255,255,255,0.45)" letter-spacing="2">SISTEMA DE BUSCA ATIVA DA RAPS!</text>
 
     </svg>
   </div>
