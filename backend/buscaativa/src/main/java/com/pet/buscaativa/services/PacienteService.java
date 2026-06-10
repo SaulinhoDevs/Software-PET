@@ -13,6 +13,11 @@ public interface PacienteService {
 
     List<PacienteDTO> findAll();
     PacienteDTO findById(Long id);
+    PacienteDTO findByCNS(String CNS);
+    PacienteDTO findByCPF(String CPF);
+    PacienteDTO findByNome(String nome);
+    PacienteDTO findByNomeMae(String nomeMae);
     void inativarPaciente(Long id);
+    void validarPacienteDuplicado(String CNS, Long id);
 
 }

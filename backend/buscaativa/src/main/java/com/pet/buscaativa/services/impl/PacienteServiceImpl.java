@@ -7,11 +7,13 @@ import com.pet.buscaativa.mapping.PacienteMapper;
 import com.pet.buscaativa.repositories.PacienteRepository;
 import com.pet.buscaativa.services.PacienteService;
 import com.pet.buscaativa.services.exceptions.DatabaseException;
+import com.pet.buscaativa.services.exceptions.RecursoDuplicadoException;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public PacienteDTO save(PacienteDTO pacienteDTO) {
+        validarPacienteDuplicado(pacienteDTO.CNS(), pacienteDTO.id());
 
         Paciente pacienteSalvar;
 
@@ -67,6 +70,63 @@ public class PacienteServiceImpl implements PacienteService{
         return list.stream()
                 .map(PacienteDTO::new)
                 .toList();
+    }
+    @Override
+    public void validarPacienteDuplicado(String CNS, Long id) {
+        pacienteRepository.findByCNS(CNS).ifPresent(
+            paciente -> {
+                if(!paciente.getId().equals(id)){
+                    throw new RecursoDuplicadoException("Paciente já cadastrado no sistema!");
+                }
+            }
+        );
+    }
+
+    @Override
+    public PacienteDTO findByCNS(String CNS) {
+        var paciente = pacienteRepository.findByCNS(CNS).orElse(null);
+        
+        if(paciente == null){
+            return null;
+        }
+
+        return pacienteMapper.toPacienteDTO(paciente);
+
+    }
+
+    @Override
+    public PacienteDTO findByCPF(String CPF) {
+        var paciente = pacienteRepository.findByCPF(CPF).orElse(null);
+        
+        if(paciente == null){
+            return null;
+        }
+
+        return pacienteMapper.toPacienteDTO(paciente);
+
+    }
+
+    @Override
+    public PacienteDTO findByNome(String nome) {
+        var paciente = pacienteRepository.findByNome(nome).orElse(null);
+
+        if(paciente == null){
+            return null;
+        }
+
+        return pacienteMapper.toPacienteDTO(paciente);
+
+    }
+
+    @Override
+    public PacienteDTO findByNomeMae(String nomeMae) {
+        var paciente = pacienteRepository.findByNomeMae(nomeMae).orElse(null);
+
+        if(paciente == null){
+            return null;
+        }
+
+        return pacienteMapper.toPacienteDTO(paciente);
     }
 
     
