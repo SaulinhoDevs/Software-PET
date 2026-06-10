@@ -84,37 +84,27 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public PacienteDTO findByCNS(String CNS) {
-        var paciente = pacienteRepository.findByCNS(CNS).orElse(null);
-        
-        if(paciente == null){
-            return null;
-        }
-
+        Paciente paciente = pacienteRepository.findByCNS(CNS)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CNS informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 
     }
 
     @Override
     public PacienteDTO findByCPF(String CPF) {
-        var paciente = pacienteRepository.findByCPF(CPF).orElse(null);
-        
-        if(paciente == null){
-            return null;
-        }
-
+        Paciente paciente = pacienteRepository.findByCPF(CPF)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CPF informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 
     }
 
     @Override
-    public PacienteDTO findByNome(String nome) {
-        var paciente = pacienteRepository.findByNome(nome).orElse(null);
-
-        if(paciente == null){
-            return null;
-        }
-
-        return pacienteMapper.toPacienteDTO(paciente);
+    public List<PacienteDTO> findByNome(String nome) {
+        List<Paciente> pacientes = pacienteRepository.findByNomeContainingIgnoreCase(nome);
+        
+        return pacientes.stream()
+                .map(pacienteMapper::toPacienteDTO)
+                .toList();
 
     }
 
