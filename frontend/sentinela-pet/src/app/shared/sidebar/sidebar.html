@@ -52,6 +52,9 @@
   <!-- Navigation -->
   <nav class="nav-menu">
     <a *ngFor="let item of menuItems" [routerLink]="item.route" class="nav-link">
+      <span class="material-symbols-outlined nav-icon">
+        {{ item.icon }}
+      </span>
       <span class="nav-label">{{ item.label }}</span>
     </a>
   </nav>
@@ -59,6 +62,9 @@
   <!-- Logout -->
   <div class="logout-container">
     <button (click)="logout()" class="logout-btn">
+      <span class="material-symbols-outlined">
+        logout
+      </span>
       <span class="nav-label">Sair</span>
     </button>
   </div>

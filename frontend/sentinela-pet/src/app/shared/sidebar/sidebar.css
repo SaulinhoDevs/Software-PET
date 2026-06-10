@@ -144,6 +144,11 @@
   border-radius: 9999px;
 }
 
+.material-symbols-outlined {
+  font-size: 22px;
+  vertical-align: middle;
+}
+
 /* ===== COMPORTAMENTO MOBILE ===== */
 @media (max-width: 768px) {
   :host {

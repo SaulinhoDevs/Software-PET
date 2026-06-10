@@ -12,7 +12,7 @@ export class Sidebar {
   constructor(private router: Router) {}
 
   menuItems = [
-    { label: 'Início', route: '/inicio' },
+    { label: 'Início', route: '/inicio', icon: 'home' },
   ];
 
   logout() {
