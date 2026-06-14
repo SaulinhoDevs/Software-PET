@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import com.pet.buscaativa.entities.Paciente;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +22,7 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long>{
     Optional<Paciente> findByNomeMae(String nomeMae);
 
     List<Paciente> findByNomeContainingIgnoreCase (String nome);    
+
+    List<Paciente> findByNomeIgnoreCaseAndNomeMaeIgnoreCaseAndDataNascimento(
+    String nome, String nomeMae, LocalDate dataNascimento);
 }
