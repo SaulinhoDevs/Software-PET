@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import org.hibernate.envers.Audited;
+
 import com.pet.buscaativa.entities.enums.SexoEnum;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
 import com.pet.buscaativa.entities.enums.RacaCorEnum;
@@ -22,14 +24,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
+@Audited
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Table(name = "tb_paciente")
-public class Paciente implements Serializable{
+public class Paciente extends AbstractEntities implements Serializable{
 
     private static final long serialVersionUID = 1L;
     

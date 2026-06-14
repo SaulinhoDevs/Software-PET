@@ -5,11 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum TipoUsuario {
 
     ADMINISTRADOR(1),
-    MEDICO(2),
-    ENFERMEIRO(3),
-    DENTISTA(4),
-    TECNICO_ENFERMAGEM(5),
-    RECEPCAO(6);
+    PROFISSIONAL(2),
+    RECEPCAO(3);
 
     private int codigo;
 

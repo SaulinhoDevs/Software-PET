@@ -12,13 +12,16 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.hibernate.envers.Audited;
+
+@Audited
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Table(name = "tb_usuario")
-public class Usuario implements Serializable {
+public class Usuario extends AbstractEntities implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
