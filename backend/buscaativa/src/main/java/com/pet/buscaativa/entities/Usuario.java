@@ -32,8 +32,10 @@ public class Usuario extends AbstractEntities implements Serializable {
     private String email;
     private String senha;
 
+    @Convert(converter = TipoUsuarioConverter.class)
     private Integer tipoUsuario;
 
+    @Convert(converter = UnidadeAtuacaoConverter.class)
     private Integer unidadeAtuacao;
 
 

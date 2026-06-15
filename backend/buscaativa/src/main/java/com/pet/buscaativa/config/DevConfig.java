@@ -34,7 +34,7 @@ public class DevConfig implements CommandLineRunner {
         Usuario medico = new Usuario();
         medico.setEmail("medico@pet.com");
         medico.setSenha(passwordEncoder.encode("123456"));
-        medico.setTipoUsuario(TipoUsuario.MEDICO);
+        medico.setTipoUsuario(TipoUsuario.PROFISSIONAL);
         medico.setUnidadeAtuacao(UnidadeAtuacao.CAPS_AD);
 
         Usuario recepcao = new Usuario();

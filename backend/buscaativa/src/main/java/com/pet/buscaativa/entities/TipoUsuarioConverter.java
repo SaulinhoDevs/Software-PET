@@ -5,7 +5,7 @@ import com.pet.buscaativa.entities.enums.TipoUsuario;
 import jakarta.persistence.AttributeConverter;
 
 public class TipoUsuarioConverter implements AttributeConverter<TipoUsuario, Integer>{
-     @Override
+    @Override
     public Integer convertToDatabaseColumn(TipoUsuario status) {
         if (status == null) {
             return null;

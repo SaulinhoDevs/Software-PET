@@ -12,6 +12,7 @@ import com.pet.buscaativa.entities.enums.RacaCorEnum;
 import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -43,10 +44,17 @@ public class Paciente extends AbstractEntities implements Serializable{
     private String nomeMae;
     private LocalDate dataNascimento;
     private LocalDate dataUltimaPresenca;
+
+    @Convert(converter = SexoEnumConverter.class)
     private SexoEnum sexo;
+
+    @Convert(converter = RacaCorEnumConverter.class)
     private RacaCorEnum racacor;
-    private String CNS;
-    private String CPF;
+
+    private String cns;
+
+    private String cpf;
+
     private String telefone;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -54,8 +62,13 @@ public class Paciente extends AbstractEntities implements Serializable{
     private Endereco endereco;
 
     private boolean situacaoRua;
+
+    @Convert(converter = TipoAcompanhamentoConverter.class)
     private TipoAcompanhamento tipoAcompanhamento;
+
     private int countFaltas;
+    
+    @Convert(converter = StatusPacienteConverter.class)
     private StatusPaciente statusPaciente;
 
     @ManyToOne
