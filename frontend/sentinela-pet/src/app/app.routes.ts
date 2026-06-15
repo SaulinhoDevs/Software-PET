@@ -3,6 +3,7 @@ import { Login } from './pages/login/login';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { Inicio } from './pages/inicio/inicio';
+import { Painel } from './pages/painel/painel';
 
 export const routes: Routes = [
   // Redireciona a raiz para o login
@@ -19,6 +20,9 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayout,
-    children: [{ path: 'inicio', component: Inicio }],
+    children: [
+      { path: 'inicio', component: Inicio },
+      { path: 'painel', component: Painel },
+    ],
   },
 ];

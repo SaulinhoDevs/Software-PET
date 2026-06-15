@@ -13,6 +13,7 @@ export class Sidebar {
 
   menuItems = [
     { label: 'Início', route: '/inicio', icon: 'home' },
+    { label: 'Painel', route: '/painel', icon: 'bar_chart' },
   ];
 
   logout() {
