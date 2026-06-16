@@ -14,6 +14,8 @@ export class Sidebar {
   menuItems = [
     { label: 'Início', route: '/inicio', icon: 'home' },
     { label: 'Painel', route: '/painel', icon: 'bar_chart' },
+    { label: 'Agenda', route: '/agenda', icon: 'calendar_today' },
+    { label: 'Pacientes', route: '/pacientes', icon: 'people' },
   ];
 
   logout() {

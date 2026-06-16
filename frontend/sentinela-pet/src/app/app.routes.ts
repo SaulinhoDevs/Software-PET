@@ -4,12 +4,14 @@ import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { Inicio } from './pages/inicio/inicio';
 import { Painel } from './pages/painel/painel';
+import { Agenda } from './pages/agenda/agenda';
+import { Pacientes } from './pages/pacientes/pacientes';
 
 export const routes: Routes = [
   // Redireciona a raiz para o login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // Rotas SEM header e sidebar (login, cadastro)
+  // Rotas SEM header e sidebar (login)
   {
     path: '',
     component: AuthLayout,
@@ -23,6 +25,8 @@ export const routes: Routes = [
     children: [
       { path: 'inicio', component: Inicio },
       { path: 'painel', component: Painel },
+      { path: 'agenda', component: Agenda },
+      { path: 'pacientes', component: Pacientes },
     ],
   },
 ];
