@@ -12,16 +12,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Audited
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-@Table(name = "tb_auditoria")
 public abstract class AbstractEntities{
     
     @CreatedDate
