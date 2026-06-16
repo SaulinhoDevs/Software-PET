@@ -74,36 +74,34 @@ public class PacienteServiceImpl implements PacienteService{
     public void validarPacienteDuplicado(PacienteDTO pacienteDTO, boolean ignorarSimilaridade) {
         boolean possuiDoc = false;
 
-        if (pacienteDTO.CPF() != null && !pacienteDTO.CPF().isBlank()) {
+        if (pacienteDTO.cpf() != null && !pacienteDTO.cpf().isBlank()) {
             possuiDoc = true;
-            pacienteRepository.findByCPF(pacienteDTO.CPF()).ifPresent(p -> {
+            pacienteRepository.findByCpf(pacienteDTO.cpf()).ifPresent(p -> {
                 if (!p.getId().equals(pacienteDTO.id())) {
                     throw new RecursoDuplicadoException("Já existe um paciente com este CPF.");
                 }
             });
         }
 
-        if (pacienteDTO.CNS() != null && !pacienteDTO.CNS().isBlank()) {
+        if (pacienteDTO.cns() != null && !pacienteDTO.cns().isBlank()) {
             possuiDoc = true;
-            pacienteRepository.findByCNS(pacienteDTO.CNS()).ifPresent(p -> {
+            pacienteRepository.findByCns(pacienteDTO.cns()).ifPresent(p -> {
                 if (!p.getId().equals(pacienteDTO.id())) {
                     throw new RecursoDuplicadoException("Já existe um paciente com este CNS.");
                 }
             });
         }
 
-        // 3. REGRA RF15: CPF/CNS ausentes -> Busca por similaridade
+        //REGRA RF15: CPF/CNS ausentes -> Busca por similaridade
         if (!possuiDoc && !ignorarSimilaridade) {
             List<Paciente> similares = pacienteRepository
                 .findByNomeIgnoreCaseAndNomeMaeIgnoreCaseAndDataNascimento(
                     pacienteDTO.nome(), pacienteDTO.nomeMae(), pacienteDTO.dataNascimento()
                 );
 
-            // Remove o próprio paciente da lista de similares (caso seja uma edição de si mesmo sem documentos)
-            similares.removeIf(p -> p.getId().equals(pacienteDTO.id()));
+                similares.removeIf(p -> p.getId().equals(pacienteDTO.id()));
 
             if (!similares.isEmpty()) {
-                // Aqui você deve criar uma exceção customizada que possa transitar uma lista de DTOs para o front-end
                 List<PacienteDTO> similaresDTO = similares.stream().map(pacienteMapper::toPacienteDTO).toList();
                 
                 throw new DatabaseException(
@@ -114,16 +112,16 @@ public class PacienteServiceImpl implements PacienteService{
     }
 
     @Override
-    public PacienteDTO findByCNS(String CNS) {
-        Paciente paciente = pacienteRepository.findByCNS(CNS)
+    public PacienteDTO findByCns(String cns) {
+        Paciente paciente = pacienteRepository.findByCns(cns)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CNS informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 
     }
 
     @Override
-    public PacienteDTO findByCPF(String CPF) {
-        Paciente paciente = pacienteRepository.findByCPF(CPF)
+    public PacienteDTO findByCpf(String cpf) {
+        Paciente paciente = pacienteRepository.findByCpf(cpf)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CPF informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 

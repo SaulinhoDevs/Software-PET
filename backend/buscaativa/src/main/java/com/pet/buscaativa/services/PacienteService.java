@@ -14,8 +14,8 @@ public interface PacienteService {
 
     List<PacienteDTO> findAll();
     PacienteDTO findById(Long id);
-    PacienteDTO findByCNS(String CNS);
-    PacienteDTO findByCPF(String CPF);
+    PacienteDTO findByCns(String cns);
+    PacienteDTO findByCpf(String cpf);
     List<PacienteDTO> findByNome(String nome);
     PacienteDTO findByNomeMae(String nomeMae);
     void inativarPaciente(Long id);

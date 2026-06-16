@@ -44,13 +44,13 @@ public record PacienteDTO(
     @NotBlank
     @NotNull(message = "Informe o CNS do paciente.")
     @CNS
-    String CNS,
+    String cns,
 
 
     @NotBlank
     @NotNull(message = "Informe o CPF do Paciente.")
     @CPF(message = "CPF com formato inválido.")
-    String CPF,
+    String cpf,
 
     @NotBlank
     @NotNull(message = "Informe o número de Telefone do Paciente")

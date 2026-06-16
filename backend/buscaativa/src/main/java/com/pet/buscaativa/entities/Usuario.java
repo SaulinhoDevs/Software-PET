@@ -33,10 +33,10 @@ public class Usuario extends AbstractEntities implements Serializable {
     private String senha;
 
     @Convert(converter = TipoUsuarioConverter.class)
-    private Integer tipoUsuario;
+    private TipoUsuario tipoUsuario;
 
     @Convert(converter = UnidadeAtuacaoConverter.class)
-    private Integer unidadeAtuacao;
+    private UnidadeAtuacao unidadeAtuacao;
 
 
     public Long getId() {
@@ -61,26 +61,6 @@ public class Usuario extends AbstractEntities implements Serializable {
 
     public void setSenha(String senha) {
         this.senha = senha;
-    }
-
-    public TipoUsuario getTipoUsuario() {
-        return TipoUsuario.valueOf(tipoUsuario);
-    }
-
-    public void setTipoUsuario(TipoUsuario tipoUsuario) {
-        if (tipoUsuario != null) {
-            this.tipoUsuario = tipoUsuario.getCodigo();
-        }
-    }
-
-    public UnidadeAtuacao getUnidadeAtuacao(){
-        return UnidadeAtuacao.valueOf(unidadeAtuacao);
-    }
-
-    public void setUnidadeAtuacao(UnidadeAtuacao unidadeAtuacao) {
-        if (unidadeAtuacao != null) {
-            this.unidadeAtuacao = unidadeAtuacao.getCodigo();
-        }
     }
 
 
