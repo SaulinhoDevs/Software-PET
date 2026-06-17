@@ -53,12 +53,21 @@ export class Pacientes {
       return this.pacientes;
     }
 
-    return this.pacientes.filter(
-      (paciente) =>
-        paciente.nome.toLowerCase().includes(termo) ||
-        paciente.cns.includes(termo) ||
-        paciente.cpf.includes(termo),
-    );
+    const termoNumerico = termo.replace(/\D/g, '');
+    const buscaSomenteNumeros = /^[0-9]+$/.test(termo);
+
+    return this.pacientes.filter((paciente) => {
+      const nome = paciente.nome.toLowerCase();
+
+      const cns = paciente.cns.replace(/\D/g, '');
+      const cpf = paciente.cpf.replace(/\D/g, '');
+
+      if (buscaSomenteNumeros) {
+        return cns.startsWith(termoNumerico) || cpf.startsWith(termoNumerico);
+      }
+
+      return nome.includes(termo);
+    });
   }
 
   cadastrarNovoPaciente(): void {
