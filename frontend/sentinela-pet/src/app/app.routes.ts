@@ -6,6 +6,7 @@ import { Inicio } from './pages/inicio/inicio';
 import { Painel } from './pages/painel/painel';
 import { Agenda } from './pages/agenda/agenda';
 import { Pacientes } from './pages/pacientes/pacientes';
+import { CadastroPaciente } from './pages/cadastro-paciente/cadastro-paciente';
 
 export const routes: Routes = [
   // Redireciona a raiz para o login
@@ -27,6 +28,7 @@ export const routes: Routes = [
       { path: 'painel', component: Painel },
       { path: 'agenda', component: Agenda },
       { path: 'pacientes', component: Pacientes },
+      { path: 'pacientes/novo', component: CadastroPaciente },
     ],
   },
 ];

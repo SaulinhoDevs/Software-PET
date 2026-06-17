@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 interface Paciente {
   id: number;
@@ -13,7 +13,7 @@ interface Paciente {
 
 @Component({
   selector: 'app-pacientes',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './pacientes.html',
   styleUrl: './pacientes.css',
 })
