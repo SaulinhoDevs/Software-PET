@@ -5,6 +5,7 @@ import com.pet.buscaativa.entities.dto.PacienteDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public interface PacienteService {
@@ -13,12 +14,12 @@ public interface PacienteService {
 
 
     List<PacienteDTO> findAll();
-    PacienteDTO findById(Long id);
+    PacienteDTO findById(UUID idPublico);
     PacienteDTO findByCns(String cns);
     PacienteDTO findByCpf(String cpf);
     List<PacienteDTO> findByNome(String nome);
     PacienteDTO findByNomeMae(String nomeMae);
-    void inativarPaciente(Long id);
+    void inativarPaciente(UUID idPublico);
     void validarPacienteDuplicado(PacienteDTO pacienteDTO, boolean ignorarSimilaridade);
 
 }

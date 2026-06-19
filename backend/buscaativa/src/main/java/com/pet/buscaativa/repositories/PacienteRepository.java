@@ -8,11 +8,15 @@ import com.pet.buscaativa.entities.Paciente;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 
 
 @Repository
 public interface PacienteRepository extends JpaRepository<Paciente, Long>{
  
+    Optional<Paciente> findByIdPublico(UUID idPublico);
+
     Optional<Paciente> findByCns(String cns);
 
     Optional<Paciente> findByCpf(String cpf);

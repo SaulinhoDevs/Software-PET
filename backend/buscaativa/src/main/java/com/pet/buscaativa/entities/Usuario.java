@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.hibernate.envers.Audited;
 
@@ -28,6 +29,11 @@ public class Usuario extends AbstractEntities implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "id_publico", unique = true, updatable = false, nullable = false)
+    private UUID idPublico = UUID.randomUUID();
+
+    private String nome;
 
     private String email;
     private String senha;

@@ -1,6 +1,7 @@
 package com.pet.buscaativa.entities.dto;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import org.hibernate.validator.constraints.br.CPF;
 
@@ -16,7 +17,7 @@ import com.pet.buscaativa.validation.CNS;
 import jakarta.validation.constraints.*;
 
 public record PacienteDTO(
-    Long id,
+    UUID idPublico,
 
     @NotBlank
     @NotNull(message = "Informe o nome do Paciente.")
@@ -79,7 +80,7 @@ public record PacienteDTO(
 ) {
     public PacienteDTO(Paciente entity) {
         this(
-            entity.getId(), 
+            entity.getIdPublico(), 
             entity.getNome(),
             entity.getNomeMae(), 
             entity.getDataNascimento(),

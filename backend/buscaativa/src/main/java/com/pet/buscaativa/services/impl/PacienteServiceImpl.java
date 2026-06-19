@@ -13,6 +13,7 @@ import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,8 @@ public class PacienteServiceImpl implements PacienteService{
 
         Paciente pacienteSalvar;
 
-        if(pacienteDTO.id() != null){
-            pacienteSalvar = pacienteRepository.findById(pacienteDTO.id())
+        if(pacienteDTO.idPublico() != null){
+            pacienteSalvar = pacienteRepository.findByIdPublico(pacienteDTO.idPublico())
                     .orElseThrow(() -> new DatabaseException("Paciente não encontrado!"));
 
             pacienteMapper.updatePacienteFromDTO(pacienteDTO, pacienteSalvar);
@@ -47,8 +48,8 @@ public class PacienteServiceImpl implements PacienteService{
 
     }
     @Override
-    public void inativarPaciente(Long id) {
-        Paciente paciente = pacienteRepository.findById(id)
+    public void inativarPaciente(UUID idPublico) {
+        Paciente paciente = pacienteRepository.findByIdPublico(idPublico)
                 .orElseThrow(() -> new DatabaseException("Paciente não encontrado!"));
 
         paciente.setStatusPaciente(StatusPaciente.INATIVO);
@@ -57,9 +58,9 @@ public class PacienteServiceImpl implements PacienteService{
     }
 
     @Override
-    public PacienteDTO findById(Long id) {
-        Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(id));
+    public PacienteDTO findById(UUID idPublico) {
+        Paciente paciente = pacienteRepository.findByIdPublico(idPublico)
+                .orElseThrow(() -> new ResourceNotFoundException(idPublico));
         return new PacienteDTO(paciente);
     }
 
@@ -77,7 +78,7 @@ public class PacienteServiceImpl implements PacienteService{
         if (pacienteDTO.cpf() != null && !pacienteDTO.cpf().isBlank()) {
             possuiDoc = true;
             pacienteRepository.findByCpf(pacienteDTO.cpf()).ifPresent(p -> {
-                if (!p.getId().equals(pacienteDTO.id())) {
+                if (!p.getId().equals(pacienteDTO.idPublico())) {
                     throw new RecursoDuplicadoException("Já existe um paciente com este CPF.");
                 }
             });
@@ -86,7 +87,7 @@ public class PacienteServiceImpl implements PacienteService{
         if (pacienteDTO.cns() != null && !pacienteDTO.cns().isBlank()) {
             possuiDoc = true;
             pacienteRepository.findByCns(pacienteDTO.cns()).ifPresent(p -> {
-                if (!p.getId().equals(pacienteDTO.id())) {
+                if (!p.getId().equals(pacienteDTO.idPublico())) {
                     throw new RecursoDuplicadoException("Já existe um paciente com este CNS.");
                 }
             });
@@ -99,7 +100,7 @@ public class PacienteServiceImpl implements PacienteService{
                     pacienteDTO.nome(), pacienteDTO.nomeMae(), pacienteDTO.dataNascimento()
                 );
 
-                similares.removeIf(p -> p.getId().equals(pacienteDTO.id()));
+                similares.removeIf(p -> p.getId().equals(pacienteDTO.idPublico()));
 
             if (!similares.isEmpty()) {
                 List<PacienteDTO> similaresDTO = similares.stream().map(pacienteMapper::toPacienteDTO).toList();

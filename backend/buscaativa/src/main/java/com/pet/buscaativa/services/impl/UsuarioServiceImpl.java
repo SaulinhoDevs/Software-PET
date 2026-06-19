@@ -1,6 +1,7 @@
 package com.pet.buscaativa.services.impl;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.UsuarioDTO;
@@ -27,12 +28,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioDTO save(UsuarioDTO usuarioDTO) {
-        validarEmailDuplicado(usuarioDTO.email(), usuarioDTO.id());
+        validarEmailDuplicado(usuarioDTO.email(), usuarioDTO.idPublico());
 
         Usuario usuarioSalvar;
 
-        if (usuarioDTO.id() != null) {
-            usuarioSalvar = usuarioRepository.findById(usuarioDTO.id())
+        if (usuarioDTO.idPublico() != null) {
+            usuarioSalvar = usuarioRepository.findByIdPublico(usuarioDTO.idPublico())
                     .orElseThrow(() -> new DatabaseException("Usuário não encontrado!"));
 
             usuarioSalvar.setEmail(usuarioDTO.email());
@@ -65,16 +66,16 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public UsuarioDTO findById(Long id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(id));
+    public UsuarioDTO findById(UUID idPublic) {
+        Usuario usuario = usuarioRepository.findByIdPublico(idPublic)
+                .orElseThrow(() -> new ResourceNotFoundException(idPublic));
         return new UsuarioDTO(usuario);
     }
 
-    public void validarEmailDuplicado(String email, Long id) {
+    public void validarEmailDuplicado(String email, UUID idPublic) {
         usuarioRepository.findByEmail(email).ifPresent(
                 usuario -> {
-                    if (!usuario.getId().equals(id)) {
+                    if (!usuario.getId().equals(idPublic)) {
                         throw new RecursoDuplicadoException("E-mail já cadastrado no sistema!");
                     }
                 });

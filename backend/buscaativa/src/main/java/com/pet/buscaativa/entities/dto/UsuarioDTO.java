@@ -1,5 +1,7 @@
 package com.pet.buscaativa.entities.dto;
 
+import java.util.UUID;
+
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.entities.enums.UnidadeAtuacao;
@@ -8,11 +10,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record UsuarioDTO(
-    Long id,
+    UUID idPublico,
     
+    @NotBlank
+    @NotNull(message = "Digite o nome do profissional.")
+    String nome,
+
     @NotBlank
     @NotNull(message = "O campo de e-mail não pode ficar vazio.")
     String email,
+
 
     @NotBlank
     @NotNull(message = "O tipo de usuário deve ser selecionado.")
@@ -28,7 +35,8 @@ public record UsuarioDTO(
 
     public UsuarioDTO(Usuario entity) {
         this(
-            entity.getId(), 
+            entity.getIdPublico(), 
+            entity.getNome(),
             entity.getEmail(), 
             entity.getTipoUsuario(), 
             entity.getUnidadeAtuacao(),

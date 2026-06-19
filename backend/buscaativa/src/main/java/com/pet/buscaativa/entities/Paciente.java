@@ -3,6 +3,7 @@ package com.pet.buscaativa.entities;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.hibernate.envers.Audited;
 
@@ -12,6 +13,7 @@ import com.pet.buscaativa.entities.enums.RacaCorEnum;
 import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,6 +41,9 @@ public class Paciente extends AbstractEntities implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "id_publico", unique = true, updatable = false, nullable = false)
+    private UUID idPublico = UUID.randomUUID();
 
     private String nome;
     private String nomeMae;
