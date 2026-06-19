@@ -28,7 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService{
                 .orElseThrow(() -> new UsernameNotFoundException("Email do usuário não encontrado."));
 
         List<GrantedAuthority> authorities = List.of(
-            new SimpleGrantedAuthority(usuario.getTipoUsuario().name())
+            new SimpleGrantedAuthority("ROLE_" + usuario.getTipoUsuario().name())
          );
 
         return new User(usuario.getEmail(), usuario.getSenha(), authorities);

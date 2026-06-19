@@ -8,6 +8,7 @@ import com.pet.buscaativa.entities.enums.UnidadeAtuacao;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record UsuarioDTO(
     UUID idPublico,
@@ -31,6 +32,7 @@ public record UsuarioDTO(
 
     @NotBlank
     @NotNull(message = "O campo de senha não pode ficar vazio.")
+    @Size(min = 6)
     String senha) {
 
     public UsuarioDTO(Usuario entity) {

@@ -11,6 +11,7 @@ public interface UsuarioService {
 
     UsuarioDTO save(UsuarioDTO usuarioDTO);
 
+    void removerUsuario(UUID idPublico);
 
     public List<UsuarioDTO> findAll();
 
@@ -19,4 +20,5 @@ public interface UsuarioService {
     public UsuarioDTO findByEmail(String email);
 
     public void validarEmailDuplicado(String email, UUID idPublico);
+
 }

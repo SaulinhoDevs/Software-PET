@@ -91,4 +91,15 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioMapper.toUsuarioDTO(usuarioEntity);
     }
 
+    @Override
+    public void removerUsuario(UUID idPublico) {
+        var usuarioEntity = usuarioRepository.findByIdPublico(idPublico).orElse(null);
+        if(usuarioEntity == null){
+            throw new DatabaseException("Usuário não encontrado para remoção.");
+        }else{
+            usuarioRepository.deleteById(usuarioEntity.getId()); 
+        }
+
+    }
+
 }
