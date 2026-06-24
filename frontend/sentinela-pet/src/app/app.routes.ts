@@ -7,6 +7,8 @@ import { Painel } from './pages/painel/painel';
 import { Agenda } from './pages/agenda/agenda';
 import { Pacientes } from './pages/pacientes/pacientes';
 import { CadastroPaciente } from './pages/cadastro-paciente/cadastro-paciente';
+import { loginGuard } from './auth/login-guard';
+import { authGuard } from './auth/auth-guard';
 
 export const routes: Routes = [
   // Redireciona a raiz para o login
