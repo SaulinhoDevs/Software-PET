@@ -56,4 +56,8 @@ public class Agendamento {
 
     @Convert(converter = SituacaoAtendimentoConverter.class)
     private SituacaoAtendimento situacaoAtendimento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agendamento_original_id")
+    private Agendamento agendamentoOriginal;
 }
