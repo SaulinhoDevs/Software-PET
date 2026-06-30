@@ -15,7 +15,8 @@ export class Sidebar {
     { label: 'Início', route: '/inicio', icon: 'home' },
     { label: 'Painel', route: '/painel', icon: 'bar_chart' },
     { label: 'Agenda', route: '/agenda', icon: 'calendar_today' },
-    { label: 'Pacientes', route: '/pacientes', icon: 'people' },
+    { label: 'Pacientes', route: '/pacientes', icon: 'groups' },
+    { label: 'Profissionais', route: '/profissionais', icon: 'person' },
   ];
 
   logout() {

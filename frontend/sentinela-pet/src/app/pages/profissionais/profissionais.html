@@ -1,0 +1,89 @@
+<main class="container">
+
+  <section class="page-header">
+    <div class="page-title">
+      <h1>Profissionais</h1>
+      <p>Visualize, pesquise e gerencie os profissionais cadastrados no sistema.</p>
+    </div>
+
+    <button class="btn-new" (click)="cadastrarNovoProfissional()" routerLink="/cadastro-profissional">
+
+      + Cadastrar Novo Profissional
+    </button>
+  </section>
+
+  <section class="search-area">
+
+    <input type="text" class="search-input" placeholder="Digite o nome do profissional" [(ngModel)]="termoPesquisa">
+
+    <select class="search-select" [(ngModel)]="tipoUsuarioSelecionado">
+
+      <option [ngValue]="''">
+        Todos os cargos
+      </option>
+
+      <option *ngFor="let tipo of tipoUsuarioOptions" [ngValue]="tipo">
+
+        {{ labelTipoUsuario(tipo) }}
+
+      </option>
+
+    </select>
+
+  </section>
+
+  <section class="patients-list" *ngIf="profissionaisFiltrados.length > 0; else semProfissionais">
+
+    <div class="patient-card" *ngFor="let profissional of profissionaisFiltrados">
+
+      <div class="patient-info">
+
+        <h2 class="patient-name">
+          {{ profissional.nome }}
+        </h2>
+
+        <div class="patient-data">
+
+          <div class="data-item">
+            <span class="data-label">
+              Cargo / Função
+            </span>
+
+            <span class="data-value">
+              {{ labelTipoUsuario(profissional.tipoUsuario) }}
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="card-actions">
+
+        <button class="btn btn-details" (click)="verDetalhes(profissional.id)">
+
+          Detalhes
+
+        </button>
+
+        <button class="btn btn-edit" (click)="editarProfissional(profissional.id)">
+
+          Editar
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <ng-template #semProfissionais>
+
+    <div class="empty-message">
+      Nenhum profissional encontrado.
+    </div>
+
+  </ng-template>
+
+</main>
