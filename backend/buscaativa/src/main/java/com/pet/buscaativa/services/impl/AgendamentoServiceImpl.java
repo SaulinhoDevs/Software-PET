@@ -1,6 +1,7 @@
 package com.pet.buscaativa.services.impl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     }
 
     @Override
-    public List<LocalDate> buscarProximasVagasDisponiveis(Usuario usuario, TurnoEnum turno, LocalDate dataInicio, int quantidadeVagas) {
+    public List<LocalDate> buscarProximasVagasDisponiveis(Usuario usuario, TurnoEnum turno, LocalDate dataInicio, int quantidadeDesejada) {
         List<LocalDate> datasDisponiveis = new ArrayList<>();
         LocalDate dataVerificacao = dataInicio;
 
