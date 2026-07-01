@@ -20,13 +20,14 @@ export const routes: Routes = [
   {
     path: '',
     component: AuthLayout,
-    children: [{ path: 'login', component: Login }],
+    children: [{ path: 'login', component: Login, canActivate: [loginGuard] }],
   },
 
   // Rotas COM header e sidebar
   {
     path: '',
     component: MainLayout,
+    canActivate: [authGuard],
     children: [
       { path: 'inicio', component: Inicio },
       { path: 'painel', component: Painel },

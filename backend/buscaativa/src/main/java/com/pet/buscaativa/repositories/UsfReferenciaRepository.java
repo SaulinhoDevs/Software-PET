@@ -5,7 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import com.pet.buscaativa.entities.UsfReferencia;
 
+import java.util.List;
+
 @Repository
-public interface UsfReferenciaRepository extends JpaRepository<UsfReferencia, Long>{
-    
+public interface UsfReferenciaRepository extends JpaRepository<UsfReferencia, Long> {
+
+    List<UsfReferencia> findAllByOrderByNomeUsfAsc();
+
 }
