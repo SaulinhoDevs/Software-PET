@@ -1,14 +1,21 @@
 package com.pet.buscaativa.services.impl;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.pet.buscaativa.entities.DisponibilidadeProfissional;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
+import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
+import com.pet.buscaativa.repositories.AgendamentoRepository;
+import com.pet.buscaativa.repositories.BloqueioAgendaRepository;
+import com.pet.buscaativa.repositories.DisponibilidadeProfissionalRepository;
 import com.pet.buscaativa.services.AgendamentoService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,8 +26,8 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
 
     private final AgendamentoRepository agendamentoRepository;
-    private final BloqueioAgendamentoRepository bloqueioRepository;
-    private final DisponibilidadeProfissionalRepository disponbilidadeRepository;
+    private final BloqueioAgendaRepository bloqueioRepository;
+    private final DisponibilidadeProfissionalRepository disponibilidadeRepository;
 
 
     @Override
@@ -52,7 +59,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
         while(datasDisponiveis.size() < quantidadeDesejada && diasBuscados < limiteDiasBusca){
             diasBuscados++;
 
-            dataVerificacao = dataVerificacao.plusDay(1); 
+            dataVerificacao = dataVerificacao.plusDays(1); 
 
             boolean isBloqueado = bloqueioRepository.isDataBloqueadaParaUsuario(usuario, dataVerificacao);
             if(isBloqueado){
@@ -61,7 +68,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
             DayOfWeek diaSemana = dataVerificacao.getDayOfWeek();
 
-            Optional<DisponibilidadeProfissional> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaSemanaAndTurno(profissional, diaSemana, turno);
+            Optional<DisponibilidadeProfissional> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaSemanaAndTurno(usuario, diaSemana, turno);
 
             if(disponibilidadeOpt.isEmpty()){
                 continue;
