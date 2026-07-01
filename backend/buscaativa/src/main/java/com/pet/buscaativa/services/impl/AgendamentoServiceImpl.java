@@ -68,7 +68,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
             DayOfWeek diaSemana = dataVerificacao.getDayOfWeek();
 
-            Optional<DisponibilidadeProfissional> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaSemanaAndTurno(usuario, diaSemana, turno);
+            Optional<DisponibilidadeProfissional> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, turno);
 
             if(disponibilidadeOpt.isEmpty()){
                 continue;
@@ -76,8 +76,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
             DisponibilidadeProfissional disponibilidade = disponibilidadeOpt.get();
 
-            int vagasOcupadas = agendamentoRepository.countByUsuarioAndDataAgendamentoAndTurnoAgendamentoAndSituacaoAtendimentoNot(
-                usuario, dataVerificacao, turno, SituacaoAtendimento.FALTOU);
+            int vagasOcupadas = agendamentoRepository.contarVagasOcupadas(usuario, dataVerificacao, turno, SituacaoAtendimento.FALTOU);
 
             if(vagasOcupadas < disponibilidade.getCapacidade()){
                 datasDisponiveis.add(dataVerificacao);

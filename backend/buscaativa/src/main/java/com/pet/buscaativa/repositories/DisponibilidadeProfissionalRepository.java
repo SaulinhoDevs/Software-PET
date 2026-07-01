@@ -15,8 +15,8 @@ import com.pet.buscaativa.entities.enums.TurnoEnum;
 public interface DisponibilidadeProfissionalRepository extends JpaRepository<DisponibilidadeProfissional, Long>{
     
     //Busca a disponibilidade do profissional pelo dia da semana e o turno
-    Optional<DisponibilidadeProfissional> findByUsuarioAndDiaSemanaAndTurno(Usuario usuario, DayOfWeek diaSemana, TurnoEnum turno);
+    Optional<DisponibilidadeProfissional> findByUsuarioAndDiaDaSemanaAndTurno(Usuario usuario, DayOfWeek diaDaSemana, TurnoEnum turno);
 
     //Busca a disponibilidade do profissional pelo dia da semana 
-    List<DisponibilidadeProfissional> findByUsuarioAndDiaSemana(Usuario usuario, DayOfWeek diaSemana);
+    List<DisponibilidadeProfissional> findByUsuarioAndDiaDaSemana(Usuario usuario, DayOfWeek diaDaSemana);
 }

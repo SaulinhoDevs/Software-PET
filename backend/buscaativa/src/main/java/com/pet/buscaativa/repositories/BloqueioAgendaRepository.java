@@ -14,6 +14,8 @@ import com.pet.buscaativa.entities.Usuario;
 @Repository
 public interface BloqueioAgendaRepository extends JpaRepository<BloqueioAgenda, Long>{
 
-    @Query("SELECT COUNT(b) > 0 FROM BloqueioAgenda b WHERE b.usuario = :usuario AND :data BETWEEN b.dataInicio AND b.dataFim")
-    boolean isDataBloqueadaParaUsuario(@Param("usuario") Usuario usuario, @Param("dataBloqueada") LocalDate dataBloqueada);
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END FROM BloqueioAgenda b WHERE b.usuario = :usuario AND :data BETWEEN b.dataInicio AND b.dataFim")
+    boolean isDataBloqueadaParaUsuario(@Param("usuario") Usuario usuario, @Param("data") LocalDate data);
+
+
 }
