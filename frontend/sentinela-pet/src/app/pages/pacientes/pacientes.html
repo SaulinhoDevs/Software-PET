@@ -13,14 +13,15 @@
 
   <section class="search-area">
     <input type="text" class="search-input" placeholder="Digite o Nome, CNS ou CPF para encontrar"
-      [(ngModel)]="termoPesquisa" />
+      [(ngModel)]="termoPesquisa" (input)="pesquisar()" />
   </section>
 
-  <section class="patients-list" *ngIf="pacientesFiltrados.length > 0; else semPacientes">
+  <section class="patients-list" *ngIf="pacientes.length > 0; else semPacientes">
 
-    <div class="patient-card" *ngFor="let paciente of pacientesFiltrados">
+    <div class="patient-card" *ngFor="let paciente of pacientes">
 
       <div class="patient-info">
+
         <h2 class="patient-name">
           {{ paciente.nome }}
         </h2>
@@ -43,22 +44,31 @@
 
           <div class="data-item">
             <span class="data-label">Faltas</span>
-            <span class="data-value" [class.faltas-alerta]="paciente.countFaltas >= 3">
-              {{ paciente.countFaltas }}
+            <span class="data-value" [class.faltas-alerta]="(paciente.countFaltas ?? 0) >= 3">
+
+              {{ paciente.countFaltas ?? 0 }}
+
             </span>
           </div>
 
         </div>
+
       </div>
 
       <div class="card-actions">
-        <button class="btn btn-details" (click)="verDetalhes(paciente.id)">
+
+        <button class="btn btn-details" (click)="verDetalhes(paciente.idPublico!)">
+
           Detalhes
+
         </button>
 
-        <button class="btn btn-edit" (click)="editarPaciente(paciente.id)">
+        <button class="btn btn-edit" (click)="editarPaciente(paciente.idPublico!)">
+
           Editar
+
         </button>
+
       </div>
 
     </div>
@@ -66,9 +76,13 @@
   </section>
 
   <ng-template #semPacientes>
-    <div class="empty-message">
+
+    <div class="empty-message" *ngIf="!carregando">
+
       Nenhum paciente encontrado.
+
     </div>
+
   </ng-template>
 
 </main>

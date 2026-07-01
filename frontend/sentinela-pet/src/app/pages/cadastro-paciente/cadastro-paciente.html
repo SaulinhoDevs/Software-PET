@@ -115,27 +115,38 @@
         <div class="form-group">
           <label>Unidade de Saúde</label>
 
-          <select formControlName="unidadeSaude">
-            <option value="" disabled>
+          <select formControlName="usfReferencia">
+
+            <option [ngValue]="null" disabled>
               Selecione a unidade de saúde
             </option>
 
-            <option *ngFor="let unidade of unidadesSaude" [value]="unidade.nome">
-              {{ unidade.nome }}
+            <option *ngFor="let unidade of unidadesSaude" [ngValue]="unidade">
+
+              {{ unidade.nomeUsf }}
+
             </option>
+
           </select>
 
           <small class="info-message" *ngIf="carregandoUnidades">
+
             Carregando unidades de saúde...
+
           </small>
 
           <small *ngIf="erroUnidades">
+
             Não foi possível carregar as unidades de saúde.
+
           </small>
 
-          <small *ngIf="campoInvalido('unidadeSaude')">
+          <small *ngIf="campoInvalido('usfReferencia')">
+
             Unidade de saúde é obrigatória.
+
           </small>
+
         </div>
 
         <div class="form-group">

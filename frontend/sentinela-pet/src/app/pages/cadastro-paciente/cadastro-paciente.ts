@@ -2,7 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+
 import { UnidadeSaude, UnidadeSaudeService } from '../../services/unidade-saude-service';
+
 import { PacientePayload, PacienteService } from '../../services/paciente/paciente-service';
 
 enum SexoEnum {
@@ -48,28 +50,40 @@ export class CadastroPaciente implements OnInit {
 
   pacienteForm = new FormGroup({
     nome: new FormControl('', Validators.required),
+
     nomeMae: new FormControl('', Validators.required),
+
     dataNascimento: new FormControl('', Validators.required),
 
     sexo: new FormControl('', Validators.required),
+
     racacor: new FormControl('', Validators.required),
 
     cns: new FormControl('', Validators.required),
+
     cpf: new FormControl('', Validators.required),
+
     telefone: new FormControl('', Validators.required),
 
-    unidadeSaude: new FormControl('', Validators.required),
+    usfReferencia: new FormControl<UnidadeSaude | null>(null, Validators.required),
 
     situacaoRua: new FormControl(false, Validators.required),
+
     tipoAcompanhamento: new FormControl('', Validators.required),
 
     endereco: new FormGroup({
       cidade: new FormControl('', Validators.required),
+
       estado: new FormControl('', Validators.required),
+
       bairro: new FormControl('', Validators.required),
+
       logradouro: new FormControl('', Validators.required),
+
       numero: new FormControl('', Validators.required),
+
       complemento: new FormControl(''),
+
       cep: new FormControl('', Validators.required),
     }),
   });
@@ -93,7 +107,9 @@ export class CadastroPaciente implements OnInit {
         this.unidadesSaude = unidades;
         this.carregandoUnidades = false;
       },
-      error: () => {
+
+      error: (erro) => {
+        console.error(erro);
         this.erroUnidades = true;
         this.carregandoUnidades = false;
       },
@@ -110,42 +126,55 @@ export class CadastroPaciente implements OnInit {
 
     const formValue = this.pacienteForm.getRawValue();
 
-    const pacienteParaSalvar: PacientePayload = {
+    const paciente: PacientePayload = {
       nome: formValue.nome?.trim() ?? '',
+
       nomeMae: formValue.nomeMae?.trim() ?? '',
+
       dataNascimento: formValue.dataNascimento ?? '',
 
       sexo: formValue.sexo ?? '',
+
       racacor: formValue.racacor ?? '',
 
       cns: this.somenteNumeros(formValue.cns),
+
       cpf: this.somenteNumeros(formValue.cpf),
+
       telefone: this.somenteNumeros(formValue.telefone),
 
-      unidadeSaude: formValue.unidadeSaude ?? '',
+      usfReferencia: formValue.usfReferencia!,
 
       situacaoRua: formValue.situacaoRua ?? false,
+
       tipoAcompanhamento: formValue.tipoAcompanhamento ?? '',
 
       endereco: {
         cidade: formValue.endereco?.cidade?.trim() ?? '',
+
         estado: formValue.endereco?.estado?.trim().toUpperCase() ?? '',
+
         bairro: formValue.endereco?.bairro?.trim() ?? '',
+
         logradouro: formValue.endereco?.logradouro?.trim() ?? '',
+
         numero: formValue.endereco?.numero?.trim() ?? '',
+
         complemento: formValue.endereco?.complemento?.trim() ?? '',
+
         cep: this.somenteNumeros(formValue.endereco?.cep),
       },
     };
 
-    this.pacienteService.cadastrarPaciente(pacienteParaSalvar).subscribe({
+    this.pacienteService.cadastrarPaciente(paciente).subscribe({
       next: () => {
         this.salvando = false;
         this.router.navigate(['/pacientes']);
       },
+
       error: (erro) => {
         this.salvando = false;
-        console.error('Erro ao cadastrar paciente:', erro);
+        console.error(erro);
         alert('Erro ao cadastrar paciente.');
       },
     });
@@ -216,7 +245,7 @@ export class CadastroPaciente implements OnInit {
   campoInvalido(campo: string): boolean {
     const control = this.pacienteForm.get(campo);
 
-    return !!control && control.invalid && (control.dirty || control.touched);
+    return !!control && control.invalid && (control.touched || control.dirty);
   }
 
   labelEnum(valor: string): string {

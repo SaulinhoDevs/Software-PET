@@ -1,72 +1,81 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-interface Paciente {
-  id: number;
-  nome: string;
-  cns: string;
-  cpf: string;
-  countFaltas: number;
-}
+import { PacientePayload, PacienteService } from '../../services/paciente/paciente-service';
 
 @Component({
   selector: 'app-pacientes',
+  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './pacientes.html',
   styleUrl: './pacientes.css',
 })
-export class Pacientes {
-  termoPesquisa: string = '';
+export class Pacientes implements OnInit {
+  termoPesquisa = '';
 
-  pacientes: Paciente[] = [
-    {
-      id: 1,
-      nome: 'Maria da Silva',
-      cns: '123456789012345',
-      cpf: '12345678900',
-      countFaltas: 3,
-    },
-    {
-      id: 2,
-      nome: 'João Pereira',
-      cns: '987654321098765',
-      cpf: '98765432100',
-      countFaltas: 1,
-    },
-    {
-      id: 3,
-      nome: 'Carlos Souza',
-      cns: '456789123456789',
-      cpf: '45678912300',
-      countFaltas: 5,
-    },
-  ];
+  pacientes: PacientePayload[] = [];
 
-  constructor(private router: Router) {}
+  carregando = false;
 
-  get pacientesFiltrados(): Paciente[] {
-    const termo = this.termoPesquisa.toLowerCase().trim();
+  constructor(
+    private router: Router,
+    private pacienteService: PacienteService,
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarPacientes();
+  }
+
+  carregarPacientes(): void {
+    this.carregando = true;
+
+    this.pacienteService.listar().subscribe({
+      next: (pacientes) => {
+        this.pacientes = pacientes;
+        this.carregando = false;
+      },
+
+      error: (erro) => {
+        console.error('Erro ao carregar pacientes', erro);
+        this.carregando = false;
+      },
+    });
+  }
+
+  pesquisar(): void {
+    const termo = this.termoPesquisa.trim();
 
     if (!termo) {
-      return this.pacientes;
+      this.carregarPacientes();
+      return;
     }
 
-    const termoNumerico = termo.replace(/\D/g, '');
-    const buscaSomenteNumeros = /^[0-9]+$/.test(termo);
+    const somenteNumeros = termo.replace(/\D/g, '');
 
-    return this.pacientes.filter((paciente) => {
-      const nome = paciente.nome.toLowerCase();
+    if (/^\d+$/.test(termo)) {
+      if (somenteNumeros.length === 15) {
+        this.pacienteService.buscarPorCns(somenteNumeros).subscribe({
+          next: (paciente) => (this.pacientes = [paciente]),
 
-      const cns = paciente.cns.replace(/\D/g, '');
-      const cpf = paciente.cpf.replace(/\D/g, '');
+          error: () => (this.pacientes = []),
+        });
+      } else if (somenteNumeros.length === 11) {
+        this.pacienteService.buscarPorCpf(somenteNumeros).subscribe({
+          next: (paciente) => (this.pacientes = [paciente]),
 
-      if (buscaSomenteNumeros) {
-        return cns.startsWith(termoNumerico) || cpf.startsWith(termoNumerico);
+          error: () => (this.pacientes = []),
+        });
       }
 
-      return nome.includes(termo);
+      return;
+    }
+
+    this.pacienteService.buscarPorNome(termo).subscribe({
+      next: (pacientes) => (this.pacientes = pacientes),
+
+      error: () => (this.pacientes = []),
     });
   }
 
@@ -74,17 +83,19 @@ export class Pacientes {
     this.router.navigate(['/pacientes/novo']);
   }
 
-  verDetalhes(id: number): void {
-    this.router.navigate(['/pacientes', id]);
+  verDetalhes(idPublico: string): void {
+    this.router.navigate(['/pacientes', idPublico]);
   }
 
-  editarPaciente(id: number): void {
-    this.router.navigate(['/pacientes', id, 'editar']);
+  editarPaciente(idPublico: string): void {
+    this.router.navigate(['/pacientes', idPublico, 'editar']);
   }
 
   formatarCpf(cpf: string): string {
     if (!cpf) return '';
 
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    const numeros = cpf.replace(/\D/g, '');
+
+    return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 }

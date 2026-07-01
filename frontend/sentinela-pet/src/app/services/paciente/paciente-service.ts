@@ -12,30 +12,78 @@ export interface EnderecoPayload {
   cep: string;
 }
 
+export interface UsfReferencia {
+  id: number;
+  cnes: string;
+  nomeUsf: string;
+  bairro: string;
+  logradouro: string;
+  latitude: string;
+  longitude: string;
+}
+
 export interface PacientePayload {
+  idPublico?: string;
+
   nome: string;
   nomeMae: string;
   dataNascimento: string;
+
+  dataUltimaPresenca?: string;
+
   sexo: string;
   racacor: string;
+
   cns: string;
   cpf: string;
   telefone: string;
-  unidadeSaude: string;
+
+  endereco: EnderecoPayload;
+
   situacaoRua: boolean;
   tipoAcompanhamento: string;
-  endereco: EnderecoPayload;
+
+  countFaltas?: number;
+  statusPaciente?: string;
+
+  usfReferencia: UsfReferencia;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class PacienteService {
-  private readonly apiUrl = 'http://localhost:8080/pacientes';
+  private readonly apiUrl = 'http://localhost:8080/api/pacientes';
 
   constructor(private http: HttpClient) {}
 
+  listar(): Observable<PacientePayload[]> {
+    return this.http.get<PacientePayload[]>(this.apiUrl);
+  }
+
+  buscarPorNome(nome: string): Observable<PacientePayload[]> {
+    return this.http.get<PacientePayload[]>(
+      `${this.apiUrl}/busca/nome?q=${encodeURIComponent(nome)}`,
+    );
+  }
+
+  buscarPorCpf(cpf: string): Observable<PacientePayload> {
+    return this.http.get<PacientePayload>(`${this.apiUrl}/busca/cpf/${cpf}`);
+  }
+
+  buscarPorCns(cns: string): Observable<PacientePayload> {
+    return this.http.get<PacientePayload>(`${this.apiUrl}/busca/cns/${cns}`);
+  }
+
   cadastrarPaciente(paciente: PacientePayload): Observable<PacientePayload> {
     return this.http.post<PacientePayload>(this.apiUrl, paciente);
+  }
+
+  atualizarPaciente(idPublico: string, paciente: PacientePayload): Observable<PacientePayload> {
+    return this.http.put<PacientePayload>(`${this.apiUrl}/${idPublico}`, paciente);
+  }
+
+  buscarPorId(idPublico: string): Observable<PacientePayload> {
+    return this.http.get<PacientePayload>(`${this.apiUrl}/${idPublico}`);
   }
 }

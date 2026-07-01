@@ -3,14 +3,21 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export interface UnidadeSaude {
-  nome: string;
+  id: number;
+  cnes: string;
+  nomeUsf: string;
+  bairro: string;
+  logradouro: string;
+  latitude: string;
+  longitude: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class UnidadeSaudeService {
-  private readonly apiUrl = 'http://localhost:8080/unidades-saude';
+  // Ajuste esta URL caso o endpoint do backend seja diferente
+  private readonly apiUrl = 'http://localhost:8080/api/unidades-saude';
 
   constructor(private http: HttpClient) {}
 
