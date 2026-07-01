@@ -9,6 +9,8 @@ import { Pacientes } from './pages/pacientes/pacientes';
 import { CadastroPaciente } from './pages/cadastro-paciente/cadastro-paciente';
 import { loginGuard } from './auth/login-guard';
 import { authGuard } from './auth/auth-guard';
+import { Profissionais } from './pages/profissionais/profissionais';
+import { CadastroProfissional } from './pages/cadastro-profissional/cadastro-profissional';
 
 export const routes: Routes = [
   // Redireciona a raiz para o login
@@ -31,6 +33,8 @@ export const routes: Routes = [
       { path: 'agenda', component: Agenda },
       { path: 'pacientes', component: Pacientes },
       { path: 'pacientes/novo', component: CadastroPaciente },
+      { path: 'profissionais', component: Profissionais },
+      { path: 'profissionais/novo', component: CadastroProfissional },
     ],
   },
 ];

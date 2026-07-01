@@ -8,7 +8,9 @@ import { PacientePayload, PacienteService } from '../../services/paciente/pacien
 enum SexoEnum {
   MASCULINO = 'MASCULINO',
   FEMININO = 'FEMININO',
+  INTERSEXO = 'INTERSEXO',
   OUTRO = 'OUTRO',
+  NAO_INFORMADO = 'NAO_INFORMADO',
 }
 
 enum RacaCorEnum {
@@ -21,10 +23,9 @@ enum RacaCorEnum {
 }
 
 enum TipoAcompanhamento {
-  USF = 'USF',
-  CAPS = 'CAPS',
-  CAPS_AD = 'CAPS_AD',
-  CAPS_II = 'CAPS_II',
+  GRUPO_TERAPEUTICO = 'GRUPO_TERAPEUTICO',
+  INDIVIDUAL = 'INDIVIDUAL',
+  AMBOS = 'AMBOS',
 }
 
 @Component({

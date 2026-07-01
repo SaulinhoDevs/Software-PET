@@ -1,0 +1,131 @@
+<main class="container">
+
+  <section class="page-header">
+    <div>
+      <h1>Cadastrar Profissional</h1>
+      <p>Preencha os dados abaixo para cadastrar um novo profissional.</p>
+    </div>
+  </section>
+
+  <form class="form-card" [formGroup]="profissionalForm" (ngSubmit)="salvarProfissional()">
+
+    <section class="form-section">
+
+      <h2>Dados do Profissional</h2>
+
+      <div class="form-grid">
+
+        <div class="form-group form-group-large">
+          <label>Nome</label>
+
+          <input type="text" formControlName="nome" placeholder="Digite o nome completo">
+
+          <small *ngIf="campoInvalido('nome')">
+            Nome é obrigatório.
+          </small>
+        </div>
+
+        <div class="form-group form-group-large">
+          <label>E-mail</label>
+
+          <input type="email" formControlName="email" placeholder="Digite o e-mail">
+
+          <small *ngIf="campoInvalido('email')">
+            Informe um e-mail válido.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Senha</label>
+
+          <input type="password" formControlName="senha" placeholder="Digite a senha">
+
+          <small *ngIf="campoInvalido('senha')">
+            Senha é obrigatória.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Confirmar senha</label>
+
+          <input type="password" formControlName="confirmarSenha" placeholder="Repita a senha">
+
+          <small *ngIf="campoInvalido('confirmarSenha')">
+            Confirme a senha.
+          </small>
+
+          <small *ngIf="profissionalForm.hasError('senhasDiferentes') &&
+                   profissionalForm.get('confirmarSenha')?.touched">
+
+            As senhas não coincidem.
+
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Cargo / Função</label>
+
+          <select formControlName="tipoUsuario">
+
+            <option [ngValue]="null" disabled>
+              Selecione um cargo
+            </option>
+
+            <option *ngFor="let tipo of tipoUsuarioOptions" [ngValue]="tipo">
+
+              {{ labelTipoUsuario(tipo) }}
+
+            </option>
+
+          </select>
+
+          <small *ngIf="campoInvalido('tipoUsuario')">
+            Cargo é obrigatório.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Unidade de atuação</label>
+
+          <select formControlName="unidadeAtuacao">
+
+            <option [ngValue]="null" disabled>
+              Selecione a unidade
+            </option>
+
+            <option *ngFor="let unidade of unidadeAtuacaoOptions" [ngValue]="unidade">
+
+              {{ labelUnidadeAtuacao(unidade) }}
+
+            </option>
+
+          </select>
+
+          <small *ngIf="campoInvalido('unidadeAtuacao')">
+            Unidade de atuação é obrigatória.
+          </small>
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="form-actions">
+
+      <button type="button" class="btn btn-cancel" (click)="cancelar()" [disabled]="salvando">
+
+        Cancelar
+
+      </button>
+
+      <button type="submit" class="btn btn-save" [disabled]="salvando">
+
+        {{ salvando ? 'Salvando...' : 'Salvar Profissional' }}
+
+      </button>
+
+    </section>
+
+  </form>
+
+</main>
