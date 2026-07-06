@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize, timeout } from 'rxjs/operators';
 import { LoginService } from '../../services/login/login-service';
 
 @Component({
@@ -15,45 +16,94 @@ export class Login {
   private loginService = inject(LoginService);
   private router = inject(Router);
 
-  errorMessage: string = '';
-  isLoading: boolean = false;
+  errorMessage = '';
+  isLoading = false;
+
+  private readonly REQUEST_TIMEOUT = 7000;
+  private readonly ERROR_DISPLAY_TIME = 4000;
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
-  onSubmit() {
+  onSubmit(): void {
+    if (this.isLoading) {
+      return;
+    }
+
     if (this.loginForm.invalid) {
-      this.errorMessage = 'Por favor, preencha o email e a senha corretamente.';
+      this.loginForm.markAllAsTouched();
+      this.showError('Por favor, informe um e-mail e uma senha válidos.');
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Pega os valores do formulário e mapeia para a interface LoginRequest
-    const loginRequest = this.loginForm.value;
+    // Impede alterações durante a autenticação
+    this.loginForm.disable();
 
-    this.loginService.logar(loginRequest).subscribe({
-      next: (response) => {
-        // Usa o método addToken do seu serviço para salvar no localStorage
-        // Obs: Certifique-se de que a propriedade que vem do backend chama-se 'token'
-        this.loginService.addToken(response.token);
+    const loginRequest = this.loginForm.getRawValue();
 
-        // Redireciona para a tela principal
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        this.isLoading = false;
+    this.loginService
+      .logar(loginRequest)
+      .pipe(
+        timeout(this.REQUEST_TIMEOUT),
+        finalize(() => {
+          this.isLoading = false;
+          this.loginForm.enable();
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.loginService.addToken(response.token);
+          this.router.navigate(['/dashboard']);
+        },
 
-        // Trata os erros de credenciais do Spring Security
-        if (err.status === 401 || err.status === 403) {
-          this.errorMessage = 'Email ou senha inválidos. Tente novamente.';
-        } else {
-          this.errorMessage = 'Erro ao conectar com o servidor. Verifique sua conexão.';
-        }
-      },
-    });
+        error: (err) => {
+          if (err.name === 'TimeoutError') {
+            this.showError(
+              'O servidor demorou para responder. Tente novamente em alguns instantes.',
+            );
+            return;
+          }
+
+          switch (err.status) {
+            case 401:
+            case 403:
+              this.showError('E-mail ou senha inválidos.');
+              break;
+
+            case 0:
+              this.showError(
+                'Não foi possível conectar ao servidor. Verifique sua conexão ou tente novamente.',
+              );
+              break;
+
+            case 500:
+              this.showError(
+                'Ocorreu um erro interno no servidor. Tente novamente em alguns instantes.',
+              );
+              break;
+
+            default:
+              this.showError('Ocorreu um erro inesperado durante o login.');
+          }
+        },
+      });
+  }
+
+  /**
+   * Exibe uma mensagem de erro temporariamente.
+   */
+  private showError(message: string): void {
+    this.errorMessage = message;
+
+    setTimeout(() => {
+      if (this.errorMessage === message) {
+        this.errorMessage = '';
+      }
+    }, this.ERROR_DISPLAY_TIME);
   }
 }
