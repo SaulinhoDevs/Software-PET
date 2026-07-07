@@ -8,15 +8,18 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.pet.buscaativa.entities.Agendamento;
 import com.pet.buscaativa.entities.DisponibilidadeProfissional;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
+import com.pet.buscaativa.mapping.AgendamentoMapper;
 import com.pet.buscaativa.repositories.AgendamentoRepository;
 import com.pet.buscaativa.repositories.BloqueioAgendaRepository;
 import com.pet.buscaativa.repositories.DisponibilidadeProfissionalRepository;
 import com.pet.buscaativa.services.AgendamentoService;
+import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +31,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     private final AgendamentoRepository agendamentoRepository;
     private final BloqueioAgendaRepository bloqueioRepository;
     private final DisponibilidadeProfissionalRepository disponibilidadeRepository;
+    private final AgendamentoMapper agendamentoMapper;
 
 
     @Override
@@ -85,5 +89,23 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
         return datasDisponiveis;
 
+    }
+
+    @Override
+    public List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data) {
+        return agendamentoRepository.findByDataAgendamento(data).stream()
+                .map(agendamentoMapper::toAgendamentoDTO)
+                .toList();
+    }
+
+    @Override
+    public AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus) {
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado para o id: " + id));
+
+        agendamento.setSituacaoAtendimento(novoStatus);
+        agendamento = agendamentoRepository.save(agendamento);
+
+        return agendamentoMapper.toAgendamentoDTO(agendamento);
     }
 }
