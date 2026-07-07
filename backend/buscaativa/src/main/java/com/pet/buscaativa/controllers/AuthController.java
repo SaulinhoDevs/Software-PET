@@ -20,13 +20,17 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController{
+public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
 
     @PostMapping("/login")
-    public ResponseEntity<TokenDTO> login(@RequestBody LoginDTO loginDTO){
+    public ResponseEntity<TokenDTO> login(@RequestBody LoginDTO loginDTO) {
+
+        System.out.println("EMAIL: " + loginDTO.email());
+        System.out.println("SENHA: " + loginDTO.senha());
+
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.senha());
 
         Authentication auth = authenticationManager.authenticate(usernamePassword);

@@ -2,27 +2,30 @@ package com.pet.buscaativa.entities;
 
 import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.entities.enums.UnidadeAtuacao;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.hibernate.envers.Audited;
-
 @Audited
 @Entity
+@Table(name = "tb_usuario")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name = "tb_usuario")
-public class Usuario extends AbstractEntities implements Serializable {
+public class Usuario extends AbstractEntities implements Serializable, UserDetails {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,7 +38,10 @@ public class Usuario extends AbstractEntities implements Serializable {
 
     private String nome;
 
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String senha;
 
     @Convert(converter = TipoUsuarioConverter.class)
@@ -44,41 +50,55 @@ public class Usuario extends AbstractEntities implements Serializable {
     @Convert(converter = UnidadeAtuacaoConverter.class)
     private UnidadeAtuacao unidadeAtuacao;
 
-
-    public Long getId() {
-        return id;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(
+                new SimpleGrantedAuthority("ROLE_" + tipoUsuario.name())
+        );
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
+    @Override
+    public String getPassword() {
         return senha;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    @Override
+    public String getUsername() {
+        return email;
     }
 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         Usuario usuario = (Usuario) o;
+
         return Objects.equals(id, usuario.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hash(id);
     }
 }

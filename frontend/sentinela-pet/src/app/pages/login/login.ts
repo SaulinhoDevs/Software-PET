@@ -44,7 +44,12 @@ export class Login {
     // Impede alterações durante a autenticação
     this.loginForm.disable();
 
-    const loginRequest = this.loginForm.getRawValue();
+    const form = this.loginForm.getRawValue();
+
+    const loginRequest = {
+      email: form.email,
+      senha: form.password,
+    };
 
     this.loginService
       .logar(loginRequest)
@@ -58,7 +63,7 @@ export class Login {
       .subscribe({
         next: (response) => {
           this.loginService.addToken(response.token);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/inicio']);
         },
 
         error: (err) => {

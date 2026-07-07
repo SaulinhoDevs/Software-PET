@@ -13,7 +13,7 @@ export class LoginService {
   private http = inject(HttpClient);
 
   logar(login: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${LoginService.BASE_PATH}/login`, login);
+    return this.http.post<LoginResponse>(`${LoginService.BASE_PATH}/api/auth/login`, login);
   }
 
   addToken(token: string) {
