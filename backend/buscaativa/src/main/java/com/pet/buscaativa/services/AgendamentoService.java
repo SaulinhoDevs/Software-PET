@@ -13,16 +13,16 @@ public interface AgendamentoService {
 
     AgendamentoDTO save(AgendamentoDTO agendamentoDTO);
 
+    List<LocalDate> sugerirDataRemarcacao(Long agendamento);
+
     int calcularVagasDisponiveis(Long usuarioId, LocalDate data);
 
     List<AgendamentoDTO> findAll();
 
     List<LocalDate> buscarProximasVagasDisponiveis(Usuario usuario, TurnoEnum turno, LocalDate dataInicio, int quantidadeVagas);
 
-// RF05: Busca a agenda de um dia específico
-    List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data);
+    List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, Long profissionalId);
 
-    // RF06: Registra presença, falta ou remarcação
     AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus);
 
 }

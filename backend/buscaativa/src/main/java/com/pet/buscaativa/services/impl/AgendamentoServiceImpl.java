@@ -13,11 +13,13 @@ import com.pet.buscaativa.entities.DisponibilidadeProfissional;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
+import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
 import com.pet.buscaativa.mapping.AgendamentoMapper;
 import com.pet.buscaativa.repositories.AgendamentoRepository;
 import com.pet.buscaativa.repositories.BloqueioAgendaRepository;
 import com.pet.buscaativa.repositories.DisponibilidadeProfissionalRepository;
+import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.AgendamentoService;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 
@@ -30,15 +32,37 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
     private final AgendamentoRepository agendamentoRepository;
     private final BloqueioAgendaRepository bloqueioRepository;
+    private final UsuarioRepository usuarioRepository;
     private final DisponibilidadeProfissionalRepository disponibilidadeRepository;
     private final AgendamentoMapper agendamentoMapper;
 
 
     @Override
     public AgendamentoDTO save(AgendamentoDTO agendamentoDTO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'save'");
+        Agendamento agendamento = agendamentoMapper.toAgendamentoEntity(agendamentoDTO);
+
+        if (agendamentoDTO.id() != null) {
+            var original = agendamentoRepository.findById(agendamentoDTO.id())
+                    .orElseThrow(() -> new RuntimeException("Agendamento original não encontrado"));
+                                                        
+            agendamento.setAgendamentoOriginal(original);
+            agendamento.setSituacaoAtendimento(SituacaoAtendimento.REMARCADO);
+        } else {
+            agendamento.setSituacaoAtendimento(SituacaoAtendimento.AGENDADO);
+        }
+
+        agendamento = agendamentoRepository.save(agendamento);
+        return agendamentoMapper.toAgendamentoDTO(agendamento);
     }
+
+    @Override
+    public List<LocalDate> sugerirDataRemarcacao(Long agendamento){
+        var original = agendamentoRepository.findById(agendamento)
+                        .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
+
+        return buscarProximasVagasDisponiveis(original.getUsuario(), original.getTurnoAgendamento(), LocalDate.now(), 3);
+    }
+
 
     @Override
     public int calcularVagasDisponiveis(Long usuarioId, LocalDate data) {
@@ -92,10 +116,29 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     }
 
     @Override
-    public List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data) {
-        return agendamentoRepository.findByDataAgendamento(data).stream()
-                .map(agendamentoMapper::toAgendamentoDTO)
-                .toList();
+    public List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, Long profissionalId) {
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado)
+                        .orElseThrow(() -> new RuntimeException("Usuário logado não encontrado"));
+
+        List<Agendamento> agendamentos;
+
+        if (usuarioLogado.getTipoUsuario() == TipoUsuario.PROFISSIONAL) {
+            agendamentos = agendamentoRepository.findByDataAgendamentoAndUsuario(data, usuarioLogado);
+        }else{
+            if(profissionalId != null){
+                Usuario profissionalAlvo = usuarioRepository.findById(profissionalId)
+                                        .orElseThrow(() -> new RuntimeException("Profissional não encontrado"));
+                
+                agendamentos = agendamentoRepository.findByDataAgendamentoAndUsuario(data, profissionalAlvo);
+            }else{
+                agendamentos = agendamentoRepository.findByDataAgendamento(data);
+            }
+        }
+
+        return agendamentos.stream()
+            .map(agendamentoMapper::toAgendamentoDTO)
+            .toList();
+
     }
 
     @Override

@@ -25,4 +25,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long>{
                             @Param("data") LocalDate dataAgendamento, 
                             @Param("turno") TurnoEnum turnoAgendamento, 
                             @Param("situacao") SituacaoAtendimento situacao);
+
+
+    List<Agendamento> findByDataAgendamentoAndUsuario(LocalDate dataAgendamento, Usuario usuario);
 }
