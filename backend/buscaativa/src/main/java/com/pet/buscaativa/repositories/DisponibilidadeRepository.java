@@ -7,16 +7,18 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.pet.buscaativa.entities.DisponibilidadeProfissional;
+import com.pet.buscaativa.entities.Disponibilidade;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
 
 @Repository
-public interface DisponibilidadeProfissionalRepository extends JpaRepository<DisponibilidadeProfissional, Long>{
+public interface DisponibilidadeRepository extends JpaRepository<Disponibilidade, Long>{
     
     //Busca a disponibilidade do profissional pelo dia da semana e o turno
-    Optional<DisponibilidadeProfissional> findByUsuarioAndDiaDaSemanaAndTurno(Usuario usuario, DayOfWeek diaDaSemana, TurnoEnum turno);
+    Optional<Disponibilidade> findByUsuarioAndDiaDaSemanaAndTurno(Usuario usuario, DayOfWeek diaDaSemana, TurnoEnum turno);
 
     //Busca a disponibilidade do profissional pelo dia da semana 
-    List<DisponibilidadeProfissional> findByUsuarioAndDiaDaSemana(Usuario usuario, DayOfWeek diaDaSemana);
+    List<Disponibilidade> findByUsuarioAndDiaDaSemana(Usuario usuario, DayOfWeek diaDaSemana);
+
+    List<Disponibilidade> findByUsuario(Usuario usuario);
 }

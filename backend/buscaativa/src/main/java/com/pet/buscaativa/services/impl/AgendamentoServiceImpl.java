@@ -9,7 +9,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.pet.buscaativa.entities.Agendamento;
-import com.pet.buscaativa.entities.DisponibilidadeProfissional;
+import com.pet.buscaativa.entities.Disponibilidade;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
@@ -18,7 +18,7 @@ import com.pet.buscaativa.entities.enums.TurnoEnum;
 import com.pet.buscaativa.mapping.AgendamentoMapper;
 import com.pet.buscaativa.repositories.AgendamentoRepository;
 import com.pet.buscaativa.repositories.BloqueioAgendaRepository;
-import com.pet.buscaativa.repositories.DisponibilidadeProfissionalRepository;
+import com.pet.buscaativa.repositories.DisponibilidadeRepository;
 import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.AgendamentoService;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
@@ -33,7 +33,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     private final AgendamentoRepository agendamentoRepository;
     private final BloqueioAgendaRepository bloqueioRepository;
     private final UsuarioRepository usuarioRepository;
-    private final DisponibilidadeProfissionalRepository disponibilidadeRepository;
+    private final DisponibilidadeRepository disponibilidadeRepository;
     private final AgendamentoMapper agendamentoMapper;
 
 
@@ -96,13 +96,13 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
             DayOfWeek diaSemana = dataVerificacao.getDayOfWeek();
 
-            Optional<DisponibilidadeProfissional> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, turno);
+            Optional<Disponibilidade> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, turno);
 
             if(disponibilidadeOpt.isEmpty()){
                 continue;
             }
 
-            DisponibilidadeProfissional disponibilidade = disponibilidadeOpt.get();
+            Disponibilidade disponibilidade = disponibilidadeOpt.get();
 
             int vagasOcupadas = agendamentoRepository.contarVagasOcupadas(usuario, dataVerificacao, turno, SituacaoAtendimento.FALTOU);
 
@@ -116,7 +116,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     }
 
     @Override
-    public List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, Long profissionalId) {
+    public List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, Long usuarioId) {
         Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado)
                         .orElseThrow(() -> new RuntimeException("Usuário logado não encontrado"));
 
@@ -125,8 +125,8 @@ public class AgendamentoServiceImpl implements AgendamentoService{
         if (usuarioLogado.getTipoUsuario() == TipoUsuario.PROFISSIONAL) {
             agendamentos = agendamentoRepository.findByDataAgendamentoAndUsuario(data, usuarioLogado);
         }else{
-            if(profissionalId != null){
-                Usuario profissionalAlvo = usuarioRepository.findById(profissionalId)
+            if(usuarioId != null){
+                Usuario profissionalAlvo = usuarioRepository.findById(usuarioId)
                                         .orElseThrow(() -> new RuntimeException("Profissional não encontrado"));
                 
                 agendamentos = agendamentoRepository.findByDataAgendamentoAndUsuario(data, profissionalAlvo);

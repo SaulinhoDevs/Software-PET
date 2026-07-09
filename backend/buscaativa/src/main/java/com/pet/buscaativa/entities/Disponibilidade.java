@@ -31,7 +31,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "tb_disponibilidade_prof")
-public class DisponibilidadeProfissional extends AbstractEntities implements Serializable{
+public class Disponibilidade extends AbstractEntities implements Serializable{
     
     private static final long serialVersionUID = 1L;
 
