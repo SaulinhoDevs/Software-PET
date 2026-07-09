@@ -19,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,7 +31,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name = "tb_disponibilidade_prof")
+@Table(name = "tb_disponibilidade_prof", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_disponibilidade_usuario_dia_turno", columnNames = {"usuario_id", "dia_semana", "turno"})
+    })
 public class Disponibilidade extends AbstractEntities implements Serializable{
     
     private static final long serialVersionUID = 1L;

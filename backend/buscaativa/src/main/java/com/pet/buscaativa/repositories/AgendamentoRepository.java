@@ -18,7 +18,12 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long>{
     
     List<Agendamento>findByDataAgendamento(LocalDate dataAgendamento);
 
-    //Responsabel por contar quantos agendamentos de um usuario fem em uma determinada data para um determinado turno analisando
+    // Conta agendamentos que ocupam vaga com filtro por status
+    @Query("SELECT COUNT(a) FROM Agendamento a WHERE a.usuario = :usuario AND a.dataAgendamento = :data AND a.turnoAgendamento = :turno AND a.situacaoAtendimento IN :situacoes")
+    int contarVagasOcupadasBySituacoes(@Param("usuario") Usuario usuario, 
+                                       @Param("data") LocalDate dataAgendamento, 
+                                       @Param("turno") TurnoEnum turnoAgendamento, 
+                                       @Param("situacoes") List<SituacaoAtendimento> situacoes);
 
     @Query("SELECT COUNT(a) FROM Agendamento a WHERE a.usuario = :usuario AND a.dataAgendamento = :data AND a.turnoAgendamento = :turno AND a.situacaoAtendimento <> :situacao")
     int contarVagasOcupadas(@Param("usuario") Usuario usuario, 

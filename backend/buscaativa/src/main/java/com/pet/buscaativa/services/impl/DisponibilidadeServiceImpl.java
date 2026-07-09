@@ -1,6 +1,7 @@
 package com.pet.buscaativa.services.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.repositories.DisponibilidadeRepository;
 import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.DisponibilidadeService;
+import com.pet.buscaativa.services.exceptions.RecursoDuplicadoException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +27,16 @@ public class DisponibilidadeServiceImpl implements DisponibilidadeService{
     @Override
     public DisponibilidadeDTO save(DisponibilidadeDTO disponibilidadeDTO, String emailLogado) {
         Usuario usuario = determinarUsuarioAlvo(disponibilidadeDTO.usuarioId(), emailLogado);
+
+        // Validação de duplicidade
+        Optional<Disponibilidade> checarDisponibilidade = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, disponibilidadeDTO.diaSemana(), disponibilidadeDTO.turno());
+        if (checarDisponibilidade.isPresent()) {
+            Disponibilidade existente = checarDisponibilidade.get();
+            if (disponibilidadeDTO.id() == null || !existente.getId().equals(disponibilidadeDTO.id())) {
+                throw new RecursoDuplicadoException("Já existe disponibilidade cadastrada para este profissional, dia da semana e turno.");
+            }
+        }
+
 
         Disponibilidade disponibilidade = new Disponibilidade();
         if (disponibilidadeDTO.id() != null) {

@@ -49,7 +49,10 @@ public class AgendamentoServiceImpl implements AgendamentoService{
         if (agendamentoDTO.id() != null) {
             var original = agendamentoRepository.findById(agendamentoDTO.id())
                     .orElseThrow(() -> new RuntimeException("Agendamento original não encontrado"));
-                                                        
+            
+            original.setSituacaoAtendimento(SituacaoAtendimento.REMARCADO_ORIGEM);
+            agendamento.setAgendamentoOriginal(original);
+
             agendamento.setAgendamentoOriginal(original);
             agendamento.setSituacaoAtendimento(SituacaoAtendimento.REMARCADO);
         } else {
@@ -74,30 +77,40 @@ public class AgendamentoServiceImpl implements AgendamentoService{
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + usuarioId));
 
-        // Se a data cai em feriado ou data bloqueada a disponibilidade é ZERO
+        // Se a data cai em uma data bloqueada, a disponibilidade é ZERO
         boolean isBloqueado = bloqueioAgendaRepository.isDataBloqueadaParaUsuario(usuario, data);
         if (isBloqueado) {
             return 0; 
         }
 
         DayOfWeek diaSemana = data.getDayOfWeek();
-        int vagasTotais = 0;
+        int vagasDisponiveisTotal = 0;
 
-        // Busca a disponibilidade da Manhã
+        // Define quais status consideramos como ocupantes de vaga
+        List<SituacaoAtendimento> ocupantesVaga = List.of(
+            SituacaoAtendimento.AGENDADO, 
+            SituacaoAtendimento.REMARCADO, 
+            SituacaoAtendimento.PRESENTE
+        );
+
         Optional<Disponibilidade> manhaOpt = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, TurnoEnum.MANHA);
-        if (manhaOpt.isPresent()) {
-            int ocupadas = agendamentoRepository.contarVagasOcupadas(usuario, data, TurnoEnum.MANHA, SituacaoAtendimento.FALTOU);
-            vagasTotais += Math.max(0, manhaOpt.get().getCapacidade() - ocupadas);
-        }
-
-        // Busca a disponibilidade da Tarde
         Optional<Disponibilidade> tardeOpt = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, TurnoEnum.TARDE);
-        if (tardeOpt.isPresent()) {
-            int ocupadas = agendamentoRepository.contarVagasOcupadas(usuario, data, TurnoEnum.TARDE, SituacaoAtendimento.FALTOU);
-            vagasTotais += Math.max(0, tardeOpt.get().getCapacidade() - ocupadas);
+
+        //Busca a disponibilidade da Manhã e desconta os ocupados
+        if (manhaOpt.isPresent()) {
+            Disponibilidade manha = manhaOpt.get();
+            int ocupadas = agendamentoRepository.contarVagasOcupadasBySituacoes(usuario, data, TurnoEnum.MANHA, ocupantesVaga);
+            vagasDisponiveisTotal += Math.max(0, manha.getCapacidade() - ocupadas);
         }
 
-        return vagasTotais;
+        //Busca a disponibilidade da Tarde e desconta os ocupados
+        if (tardeOpt.isPresent()) {
+            Disponibilidade tarde = tardeOpt.get();
+            int ocupadas = agendamentoRepository.contarVagasOcupadasBySituacoes(usuario, data, TurnoEnum.TARDE, ocupantesVaga);
+            vagasDisponiveisTotal += Math.max(0, tarde.getCapacidade() - ocupadas);
+        }
+
+        return vagasDisponiveisTotal;
     }
 
     @Override
@@ -113,6 +126,9 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
         int limiteDiasBusca = 90;
         int diasBuscados = 0;
+
+        //Situacoes que ocupam a vaga
+        List<SituacaoAtendimento> ocupantesVaga = List.of(SituacaoAtendimento.AGENDADO, SituacaoAtendimento.REMARCADO, SituacaoAtendimento.PRESENTE);
 
         while(datasDisponiveis.size() < quantidadeDesejada && diasBuscados < limiteDiasBusca){
             diasBuscados++;
@@ -134,7 +150,7 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
             Disponibilidade disponibilidade = disponibilidadeOpt.get();
 
-            int vagasOcupadas = agendamentoRepository.contarVagasOcupadas(usuario, dataVerificacao, turno, SituacaoAtendimento.FALTOU);
+            int vagasOcupadas = agendamentoRepository.contarVagasOcupadasBySituacoes(usuario, dataVerificacao, turno, ocupantesVaga);
 
             if(vagasOcupadas < disponibilidade.getCapacidade()){
                 datasDisponiveis.add(dataVerificacao);
