@@ -3,12 +3,17 @@ package com.pet.buscaativa.services.impl;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
 import com.pet.buscaativa.entities.Agendamento;
+import com.pet.buscaativa.entities.BloqueioAgenda;
 import com.pet.buscaativa.entities.Disponibilidade;
 import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.Usuario;
@@ -137,39 +142,101 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     @Override
     public List<LocalDate> buscarProximasVagasDisponiveis(Usuario usuario, TurnoEnum turno, LocalDate dataInicio, int quantidadeDesejada) {
         List<LocalDate> datasDisponiveis = new ArrayList<>();
-        LocalDate dataVerificacao = dataInicio;
 
         int limiteDiasBusca = 90;
+        LocalDate primeiraData = dataInicio.plusDays(1);
+        LocalDate ultimaData = dataInicio.plusDays(limiteDiasBusca);
+
+        // 1) Buscar disponibilidades do usuário (todas) e montar map: DayOfWeek -> Disponibilidade por turno
+        List<Disponibilidade> todasDisponibilidades = disponibilidadeRepository.findByUsuario(usuario);
+        Map<DayOfWeek, Map<TurnoEnum, Disponibilidade>> disponibilidadeMap = new HashMap<>();
+        for (Disponibilidade d : todasDisponibilidades) {
+            disponibilidadeMap
+                .computeIfAbsent(d.getDiaDaSemana(), k -> new HashMap<>())
+                .put(d.getTurno(), d);
+        }
+
+        // 2) Buscar bloqueios do usuário (em lote) e gerar um conjunto de datas bloqueadas dentro do intervalo
+        List<BloqueioAgenda> bloqueios = bloqueioAgendaRepository.findByUsuario(usuario);
+        Set<LocalDate> datasBloqueadas = new HashSet<>();
+        for (BloqueioAgenda b : bloqueios) {
+            LocalDate start = b.getDataInicio();
+            LocalDate end = b.getDataFim();
+            if (end == null && start == null) continue;
+            // Intersecta com nosso intervalo de busca
+            LocalDate s = (start == null || start.isBefore(primeiraData)) ? primeiraData : start;
+            LocalDate e = (end == null || end.isAfter(ultimaData)) ? ultimaData : end;
+
+            if (s.isAfter(e)) continue;
+
+            LocalDate cursor = s;
+            while (!cursor.isAfter(e)) {
+                datasBloqueadas.add(cursor);
+                cursor = cursor.plusDays(1);
+            }
+        }
+
+        // 3) Buscar agendamentos do usuário no intervalo (em lote) e agrupar por data+turno somente considerando status ocupantes
+        List<Agendamento> agendamentosNoIntervalo = agendamentoRepository.findByUsuarioAndDataAgendamentoBetween(usuario, primeiraData, ultimaData);
+        // status que ocupam vaga
+        List<SituacaoAtendimento> ocupantes = List.of(SituacaoAtendimento.AGENDADO, SituacaoAtendimento.REMARCADO, SituacaoAtendimento.PRESENTE);
+
+        // Map<LocalDate, Map<TurnoEnum, Integer>> ocupacaoMap
+        Map<LocalDate, Map<TurnoEnum, Integer>> ocupacaoMap = new HashMap<>();
+        for (Agendamento a : agendamentosNoIntervalo) {
+            if (a.getDataAgendamento() == null || a.getTurnoAgendamento() == null || a.getSituacaoAtendimento() == null) continue;
+
+            if (!ocupantes.contains(a.getSituacaoAtendimento())) continue;
+
+            LocalDate d = a.getDataAgendamento();
+            TurnoEnum t = a.getTurnoAgendamento();
+
+            ocupacaoMap
+                .computeIfAbsent(d, k -> new HashMap<>())
+                .merge(t, 1, Integer::sum);
+        }
+
+        // 4) Iterar dias do intervalo e decidir se há vaga: usar disponibilidadeMap, datasBloqueadas e ocupacaoMap
+        LocalDate dataVerificacao = primeiraData;
         int diasBuscados = 0;
 
-        //Situacoes que ocupam a vaga
-        List<SituacaoAtendimento> ocupantesVaga = List.of(SituacaoAtendimento.AGENDADO, SituacaoAtendimento.REMARCADO, SituacaoAtendimento.PRESENTE);
-
-        while(datasDisponiveis.size() < quantidadeDesejada && diasBuscados < limiteDiasBusca){
+        while (datasDisponiveis.size() < quantidadeDesejada && diasBuscados < limiteDiasBusca) {
             diasBuscados++;
 
-            dataVerificacao = dataVerificacao.plusDays(1); 
+            if (dataVerificacao.isAfter(ultimaData)) break;
 
-            boolean isBloqueado = bloqueioAgendaRepository.isDataBloqueadaParaUsuario(usuario, dataVerificacao);
-            if(isBloqueado){
+            // 4.a) verificar bloqueio
+            if (datasBloqueadas.contains(dataVerificacao)) {
+                dataVerificacao = dataVerificacao.plusDays(1);
                 continue;
             }
 
+            // 4.b) verificar disponibilidade do dia da semana para o turno
             DayOfWeek diaSemana = dataVerificacao.getDayOfWeek();
-
-            Optional<Disponibilidade> disponibilidadeOpt = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, turno);
-
-            if(disponibilidadeOpt.isEmpty()){
+            Map<TurnoEnum, Disponibilidade> porTurno = disponibilidadeMap.get(diaSemana);
+            if (porTurno == null) {
+                dataVerificacao = dataVerificacao.plusDays(1);
                 continue;
             }
 
-            Disponibilidade disponibilidade = disponibilidadeOpt.get();
+            Disponibilidade disponibilidade = porTurno.get(turno);
+            if (disponibilidade == null) {
+                dataVerificacao = dataVerificacao.plusDays(1);
+                continue;
+            }
 
-            int vagasOcupadas = agendamentoRepository.contarVagasOcupadasBySituacoes(usuario, dataVerificacao, turno, ocupantesVaga);
+            // 4.c) calcular vagas ocupadas pela consulta em memória
+            int ocupadas = 0;
+            Map<TurnoEnum, Integer> porTurnoCount = ocupacaoMap.get(dataVerificacao);
+            if (porTurnoCount != null && porTurnoCount.get(turno) != null) {
+                ocupadas = porTurnoCount.get(turno);
+            }
 
-            if(vagasOcupadas < disponibilidade.getCapacidade()){
+            if (ocupadas < disponibilidade.getCapacidade()) {
                 datasDisponiveis.add(dataVerificacao);
             }
+
+            dataVerificacao = dataVerificacao.plusDays(1);
         }
 
         return datasDisponiveis;

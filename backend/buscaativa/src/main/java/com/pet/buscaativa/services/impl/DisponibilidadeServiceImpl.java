@@ -23,10 +23,11 @@ public class DisponibilidadeServiceImpl implements DisponibilidadeService{
 
     private final DisponibilidadeRepository disponibilidadeRepository;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioContextService usuarioContextService;
 
     @Override
     public DisponibilidadeDTO save(DisponibilidadeDTO disponibilidadeDTO, String emailLogado) {
-        Usuario usuario = determinarUsuarioAlvo(disponibilidadeDTO.usuarioId(), emailLogado);
+        Usuario usuario = usuarioContextService.determinarUsuarioAlvo(disponibilidadeDTO.usuarioId(), emailLogado);
 
         // Validação de duplicidade
         Optional<Disponibilidade> checarDisponibilidade = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, disponibilidadeDTO.diaSemana(), disponibilidadeDTO.turno());
@@ -53,7 +54,7 @@ public class DisponibilidadeServiceImpl implements DisponibilidadeService{
 
     @Override
     public List<DisponibilidadeDTO> listarDisponibilidades(String emailLogado, Long usuarioId) {
-        Usuario usuarioAlvo = determinarUsuarioAlvo(usuarioId, emailLogado);
+        Usuario usuarioAlvo = usuarioContextService.determinarUsuarioAlvo(usuarioId, emailLogado);
         
         return disponibilidadeRepository.findByUsuario(usuarioAlvo).stream()
                 .map(d -> new DisponibilidadeDTO(d.getId(), d.getUsuario().getId(), d.getDiaDaSemana(), d.getTurno(), d.getCapacidade()))
@@ -65,14 +66,5 @@ public class DisponibilidadeServiceImpl implements DisponibilidadeService{
         disponibilidadeRepository.deleteById(id);
     }
 
-
-    //método utilizado para saber se o admin tá postando sua disponibilidade ou a disponibilidade de outro médico
-    private Usuario determinarUsuarioAlvo(Long usuarioId, String emailLogado) {
-        Usuario logado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
-        if (usuarioId != null && logado.getTipoUsuario() == TipoUsuario.ADMINISTRADOR) {
-            return usuarioRepository.findById(usuarioId).orElseThrow();
-        }
-        return logado; // Se não for admin ou não passar ID, cadastra para si mesmo
-    }
 
 }

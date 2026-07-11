@@ -22,10 +22,11 @@ public class BloqueioAgendaServiceImpl implements BloqueioAgendaService{
 
     private final BloqueioAgendaRepository bloqueioRepository;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioContextService usuarioContextService;
 
     @Override
     public BloqueioAgendaDTO save(BloqueioAgendaDTO bloqueioAgendaDTO, String emailLogado) {
-        Usuario usuario = determinarUsuarioAlvo(bloqueioAgendaDTO.usuarioId(), emailLogado);
+        Usuario usuario = usuarioContextService.determinarUsuarioAlvo(bloqueioAgendaDTO.usuarioId(), emailLogado);
 
         BloqueioAgenda bloqueio = new BloqueioAgenda();
         if (bloqueioAgendaDTO.id() != null) {
@@ -42,7 +43,7 @@ public class BloqueioAgendaServiceImpl implements BloqueioAgendaService{
 
     @Override
     public List<BloqueioAgendaDTO> listarBloqueios(String emailLogado, Long usuarioId) {
-        Usuario usuarioAlvo = determinarUsuarioAlvo(usuarioId, emailLogado);
+        Usuario usuarioAlvo = usuarioContextService.determinarUsuarioAlvo(usuarioId, emailLogado);
         
         return bloqueioRepository.findByUsuario(usuarioAlvo).stream()
                 .map(b -> new BloqueioAgendaDTO(b.getId(), b.getUsuario().getId(), b.getDataInicio(), b.getDataFim(), b.getMotivoBloqueio()))
@@ -54,13 +55,5 @@ public class BloqueioAgendaServiceImpl implements BloqueioAgendaService{
         bloqueioRepository.deleteById(id);
     }
 
-    //método utilizado para saber se o admin tá postando sua disponibilidade ou a disponibilidade de outro médico
-    private Usuario determinarUsuarioAlvo(Long usuarioId, String emailLogado) {
-        Usuario logado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
-        if (usuarioId != null && logado.getTipoUsuario() == TipoUsuario.ADMINISTRADOR) {
-            return usuarioRepository.findById(usuarioId).orElseThrow();
-        }
-        return logado; // Se não for admin ou não passar ID, cadastra para si mesmo
-    }
 }
     

@@ -33,4 +33,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long>{
 
 
     List<Agendamento> findByDataAgendamentoAndUsuario(LocalDate dataAgendamento, Usuario usuario);
+
+    //Busca agendamentos do usuário em um intervalo
+    List<Agendamento> findByUsuarioAndDataAgendamentoBetween(Usuario usuario, LocalDate startInclusive, LocalDate endInclusive);
 }
