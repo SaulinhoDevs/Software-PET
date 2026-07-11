@@ -7,6 +7,10 @@
     </div>
   </section>
 
+  <div class="alert-erro" *ngIf="erroGeral">
+    {{ erroGeral }}
+  </div>
+
   <form class="form-card" [formGroup]="pacienteForm" (ngSubmit)="salvarPaciente()">
 
     <section class="form-section">
@@ -17,24 +21,24 @@
         <div class="form-group">
           <label>Nome</label>
           <input type="text" formControlName="nome" placeholder="Digite o nome do paciente" />
-          <small *ngIf="campoInvalido('nome')">
-            Nome é obrigatório.
+          <small *ngIf="campoInvalido('nome') || errosPorCampo['nome']">
+            {{ mensagemErro('nome', 'Nome é obrigatório.') }}
           </small>
         </div>
 
         <div class="form-group">
           <label>Nome da mãe</label>
           <input type="text" formControlName="nomeMae" placeholder="Digite o nome da mãe" />
-          <small *ngIf="campoInvalido('nomeMae')">
-            Nome da mãe é obrigatório.
+          <small *ngIf="campoInvalido('nomeMae') || errosPorCampo['nomeMae']">
+            {{ mensagemErro('nomeMae', 'Nome da mãe é obrigatório.') }}
           </small>
         </div>
 
         <div class="form-group">
           <label>Data de nascimento</label>
           <input type="date" formControlName="dataNascimento" />
-          <small *ngIf="campoInvalido('dataNascimento')">
-            Data de nascimento é obrigatória.
+          <small *ngIf="campoInvalido('dataNascimento') || errosPorCampo['dataNascimento']">
+            {{ mensagemErro('dataNascimento', 'Data de nascimento é obrigatória.') }}
           </small>
         </div>
 
@@ -48,8 +52,8 @@
             </option>
           </select>
 
-          <small *ngIf="campoInvalido('sexo')">
-            Sexo é obrigatório.
+          <small *ngIf="campoInvalido('sexo') || errosPorCampo['sexo']">
+            {{ mensagemErro('sexo', 'Sexo é obrigatório.') }}
           </small>
         </div>
 
@@ -63,8 +67,8 @@
             </option>
           </select>
 
-          <small *ngIf="campoInvalido('racacor')">
-            Raça/cor é obrigatória.
+          <small *ngIf="campoInvalido('racacor') || errosPorCampo['racacor']">
+            {{ mensagemErro('racacor', 'Raça/cor é obrigatória.') }}
           </small>
         </div>
 
@@ -89,8 +93,8 @@
           <label>CNS</label>
           <input type="text" inputmode="numeric" formControlName="cns" placeholder="Digite somente números"
             maxlength="15" (input)="somenteNumerosCampo('cns', 15)" />
-          <small *ngIf="campoInvalido('cns')">
-            CNS é obrigatório.
+          <small *ngIf="campoInvalido('cns') || errosPorCampo['cns']">
+            {{ mensagemErro('cns', 'CNS é obrigatório.') }}
           </small>
         </div>
 
@@ -98,8 +102,8 @@
           <label>CPF</label>
           <input type="text" inputmode="numeric" formControlName="cpf" placeholder="000.000.000-00" maxlength="14"
             (input)="aplicarMascaraCpf()" />
-          <small *ngIf="campoInvalido('cpf')">
-            CPF é obrigatório.
+          <small *ngIf="campoInvalido('cpf') || errosPorCampo['cpf']">
+            {{ mensagemErro('cpf', 'CPF é obrigatório.') }}
           </small>
         </div>
 
@@ -107,8 +111,8 @@
           <label>Telefone</label>
           <input type="text" inputmode="numeric" formControlName="telefone" placeholder="(00) 00000-0000" maxlength="15"
             (input)="aplicarMascaraTelefone()" />
-          <small *ngIf="campoInvalido('telefone')">
-            Telefone é obrigatório.
+          <small *ngIf="campoInvalido('telefone') || errosPorCampo['telefone']">
+            {{ mensagemErro('telefone', 'Telefone é obrigatório.') }}
           </small>
         </div>
 
@@ -141,10 +145,8 @@
 
           </small>
 
-          <small *ngIf="campoInvalido('usfReferencia')">
-
-            Unidade de saúde é obrigatória.
-
+          <small *ngIf="campoInvalido('usfReferencia') || errosPorCampo['usfReferencia']">
+            {{ mensagemErro('usfReferencia', 'Unidade de saúde é obrigatória.') }}
           </small>
 
         </div>
@@ -160,8 +162,8 @@
             </option>
           </select>
 
-          <small *ngIf="campoInvalido('tipoAcompanhamento')">
-            Tipo de acompanhamento é obrigatório.
+          <small *ngIf="campoInvalido('tipoAcompanhamento') || errosPorCampo['tipoAcompanhamento']">
+            {{ mensagemErro('tipoAcompanhamento', 'Tipo de acompanhamento é obrigatório.') }}
           </small>
         </div>
 
@@ -177,48 +179,48 @@
           <label>CEP</label>
           <input type="text" inputmode="numeric" formControlName="cep" placeholder="00000-000" maxlength="9"
             (input)="aplicarMascaraCep()" />
-          <small *ngIf="campoInvalido('endereco.cep')">
-            CEP é obrigatório.
+          <small *ngIf="campoInvalido('endereco.cep') || errosPorCampo['endereco.cep']">
+            {{ mensagemErro('endereco.cep', 'CEP é obrigatório.') }}
           </small>
         </div>
 
         <div class="form-group">
           <label>Estado</label>
           <input type="text" formControlName="estado" placeholder="Ex: SP" maxlength="2" />
-          <small *ngIf="campoInvalido('endereco.estado')">
-            Estado é obrigatório.
+          <small *ngIf="campoInvalido('endereco.estado') || errosPorCampo['endereco.estado']">
+            {{ mensagemErro('endereco.estado', 'Estado é obrigatório.') }}
           </small>
         </div>
 
         <div class="form-group">
           <label>Cidade</label>
           <input type="text" formControlName="cidade" placeholder="Digite a cidade" />
-          <small *ngIf="campoInvalido('endereco.cidade')">
-            Cidade é obrigatória.
+          <small *ngIf="campoInvalido('endereco.cidade') || errosPorCampo['endereco.cidade']">
+            {{ mensagemErro('endereco.cidade', 'Cidade é obrigatória.') }}
           </small>
         </div>
 
         <div class="form-group">
           <label>Bairro</label>
           <input type="text" formControlName="bairro" placeholder="Digite o bairro" />
-          <small *ngIf="campoInvalido('endereco.bairro')">
-            Bairro é obrigatório.
+          <small *ngIf="campoInvalido('endereco.bairro') || errosPorCampo['endereco.bairro']">
+            {{ mensagemErro('endereco.bairro', 'Bairro é obrigatório.') }}
           </small>
         </div>
 
         <div class="form-group form-group-large">
           <label>Logradouro</label>
           <input type="text" formControlName="logradouro" placeholder="Rua, avenida, travessa..." />
-          <small *ngIf="campoInvalido('endereco.logradouro')">
-            Logradouro é obrigatório.
+          <small *ngIf="campoInvalido('endereco.logradouro') || errosPorCampo['endereco.logradouro']">
+            {{ mensagemErro('endereco.logradouro', 'Logradouro é obrigatório.') }}
           </small>
         </div>
 
         <div class="form-group">
           <label>Número</label>
           <input type="text" formControlName="numero" placeholder="Número" />
-          <small *ngIf="campoInvalido('endereco.numero')">
-            Número é obrigatório.
+          <small *ngIf="campoInvalido('endereco.numero') || errosPorCampo['endereco.numero']">
+            {{ mensagemErro('endereco.numero', 'Número é obrigatório.') }}
           </small>
         </div>
 
