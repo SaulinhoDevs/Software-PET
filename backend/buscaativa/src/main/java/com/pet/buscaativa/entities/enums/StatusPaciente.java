@@ -1,7 +1,5 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum StatusPaciente {
 
     ATIVO(1),
@@ -18,7 +16,6 @@ public enum StatusPaciente {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

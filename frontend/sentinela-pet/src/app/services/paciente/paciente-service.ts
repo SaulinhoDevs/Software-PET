@@ -103,4 +103,8 @@ export class PacienteService {
   buscarPorId(idPublico: string): Observable<PacientePayload> {
     return this.http.get<PacientePayload>(`${this.apiUrl}/${idPublico}`);
   }
+
+  inativarPaciente(idPublico: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${idPublico}`);
+  }
 }

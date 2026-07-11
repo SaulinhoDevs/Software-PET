@@ -84,7 +84,7 @@ export class Pacientes implements OnInit {
   }
 
   verDetalhes(idPublico: string): void {
-    this.router.navigate(['/pacientes', idPublico]);
+    this.router.navigate(['/pacientes/detalhes', idPublico]);
   }
 
   editarPaciente(idPublico: string): void {

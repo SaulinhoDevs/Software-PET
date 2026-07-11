@@ -30,12 +30,10 @@ public class PacienteController {
 
     private final PacienteService pacienteService;
 
-
     @GetMapping
     public ResponseEntity<List<PacienteDTO>> listaPacientes(){
         return ResponseEntity.ok(pacienteService.findAll());
     }
-
 
     @GetMapping("/{idPublico}")
     public ResponseEntity<PacienteDTO> buscaPacienteId(@PathVariable UUID idPublico){
