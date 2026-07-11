@@ -25,21 +25,28 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final UserDetailsServiceImpl userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                                    
+
         var token = this.recuperarToken(request);
-                                                    
+        System.out.println(">>> URI: " + request.getRequestURI());
+        System.out.println(">>> Token recebido: " + token);
+
         if (token != null) {
             var email = tokenService.validarToken(token);
-                if (!email.isEmpty()) {
-                    UserDetails usuario = userDetailsService.loadUserByUsername(email);
-                    var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            }
+            System.out.println(">>> Email retornado pelo validarToken: '" + email + "'");
 
-            filterChain.doFilter(request, response);
+            if (!email.isEmpty()) {
+                UserDetails usuario = userDetailsService.loadUserByUsername(email);
+                System.out.println(">>> Authorities do usuário: " + usuario.getAuthorities());
+
+                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                System.out.println(">>> Autenticação setada no contexto com sucesso.");
+            }
+        }
+
+        filterChain.doFilter(request, response);
     }
 
     private String recuperarToken(HttpServletRequest request) {

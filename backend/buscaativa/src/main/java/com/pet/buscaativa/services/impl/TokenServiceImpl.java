@@ -14,27 +14,27 @@ import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.services.TokenService;
 
 @Service
-public class TokenServiceImpl implements TokenService{
+public class TokenServiceImpl implements TokenService {
 
-    @Value("{api.security.token.secret}")
+    @Value("${api.security.token.secret}")
     private String secret;
 
-    public String gerarToken(Usuario usuario){
-        try{
+    public String gerarToken(Usuario usuario) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
 
             return JWT.create().withIssuer("buscaativa-api").withSubject(usuario.getEmail()).withExpiresAt(Instant.now().plus(2, ChronoUnit.HOURS)).sign(algorithm);
 
-        }catch(JWTCreationException exception){
+        } catch (JWTCreationException exception) {
             throw new RuntimeException("Erro ao gerar token JWT", exception);
         }
     }
 
-    public String validarToken(String token){
-        try{
+    public String validarToken(String token) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.require(algorithm).withIssuer("buscaativa-api").build().verify(token).getSubject();
-        }catch(JWTVerificationException exception){
+        } catch (JWTVerificationException exception) {
             return "";
         }
     }

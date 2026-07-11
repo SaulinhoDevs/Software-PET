@@ -17,86 +17,78 @@ import com.pet.buscaativa.validation.CNS;
 import jakarta.validation.constraints.*;
 
 public record PacienteDTO(
-    UUID idPublico,
+        UUID idPublico,
 
-    @NotBlank
-    @NotNull(message = "Informe o nome do Paciente.")
-    String nome,
+        @NotBlank
+        @NotNull(message = "Informe o nome do Paciente.")
+        String nome,
 
-    @NotBlank
-    @NotNull(message = "Informe o nome da Mãe do Paciente.")
-    String nomeMae,
+        @NotBlank
+        @NotNull(message = "Informe o nome da Mãe do Paciente.")
+        String nomeMae,
 
-    @NotBlank
-    @NotNull(message = "Informe a data de Nascimento do Paciente.")
-    @PastOrPresent(message = "A data de nascimento não pode estar no futuro.")
-    LocalDate dataNascimento,
+        @NotNull(message = "Informe a data de Nascimento do Paciente.")
+        @PastOrPresent(message = "A data de nascimento não pode estar no futuro.")
+        LocalDate dataNascimento,
 
-    LocalDate dataUltimaPresenca,
+        LocalDate dataUltimaPresenca,
 
-    @NotBlank
-    @NotNull(message = "Informe o Sexo do Paciente.")
-    SexoEnum sexo,
+        @NotNull(message = "Informe o Sexo do Paciente.")
+        SexoEnum sexo,
 
-    @NotBlank
-    @NotNull(message = "Informe a Raça/Cor do Paciente.")
-    RacaCorEnum racacor,
+        @NotNull(message = "Informe a Raça/Cor do Paciente.")
+        RacaCorEnum racacor,
 
-    @NotBlank
-    @NotNull(message = "Informe o CNS do paciente.")
-    @CNS
-    String cns,
+        @NotBlank
+        @NotNull(message = "Informe o CNS do paciente.")
+        @CNS
+        String cns,
 
 
-    @NotBlank
-    @NotNull(message = "Informe o CPF do Paciente.")
-    @CPF(message = "CPF com formato inválido.")
-    String cpf,
+        @NotBlank
+        @NotNull(message = "Informe o CPF do Paciente.")
+        @CPF(message = "CPF com formato inválido.")
+        String cpf,
 
-    @NotBlank
-    @NotNull(message = "Informe o número de Telefone do Paciente")
-    String telefone,
+        @NotBlank
+        @NotNull(message = "Informe o número de Telefone do Paciente")
+        String telefone,
 
-    @NotBlank
-    @NotNull(message = "Informe o Endereço do Paciente ou Equipamento Social de Apoio.")
-    Endereco endereco,
+        @NotNull(message = "Informe o Endereço do Paciente ou Equipamento Social de Apoio.")
+        Endereco endereco,
 
-    @NotBlank
-    @NotNull(message = "Informe se o Paciente está em situação de Rua ou não.")
-    boolean situacaoRua,
+        boolean situacaoRua,
 
-    @NotBlank
-    @NotNull(message = "Informe o Tipo de Acompanhamento do Paciente.")
-    TipoAcompanhamento tipoAcompanhamento,
+        @NotNull(message = "Informe o Tipo de Acompanhamento do Paciente.")
+        TipoAcompanhamento tipoAcompanhamento,
 
-    int countFaltas,
+        Integer countFaltas,
 
-    StatusPaciente statusPaciente,
+        StatusPaciente statusPaciente,
 
-    @NotBlank
-    @NotNull(message = "Informe a USF de Referência do Paciente.")
-    UsfReferencia usfReferencia
+        @NotNull(message = "Informe a USF de Referência do Paciente.")
+        UsfReferencia usfReferencia
 
 ) {
     public PacienteDTO(Paciente entity) {
         this(
-            entity.getIdPublico(), 
-            entity.getNome(),
-            entity.getNomeMae(), 
-            entity.getDataNascimento(),
-            entity.getDataUltimaPresenca(),
-            entity.getSexo(),
-            entity.getRacacor(),
-            entity.getCns(),
-            entity.getCpf(),
-            entity.getTelefone(),
-            entity.getEndereco(),
-            entity.isSituacaoRua(),
-            entity.getTipoAcompanhamento(),
-            entity.getCountFaltas(),
-            entity.getStatusPaciente(),
-            entity.getUsfReferencia()
+                entity.getIdPublico(),
+                entity.getNome(),
+                entity.getNomeMae(),
+                entity.getDataNascimento(),
+                entity.getDataUltimaPresenca(),
+                entity.getSexo(),
+                entity.getRacacor(),
+                entity.getCns(),
+                entity.getCpf(),
+                entity.getTelefone(),
+                entity.getEndereco(),
+                entity.isSituacaoRua(),
+                entity.getTipoAcompanhamento(),
+                entity.getCountFaltas(),
+                entity.getStatusPaciente(),
+                entity.getUsfReferencia()
         );
     }
-    
+
 }

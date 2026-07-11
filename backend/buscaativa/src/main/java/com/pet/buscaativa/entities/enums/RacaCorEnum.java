@@ -1,7 +1,5 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum RacaCorEnum {
 
     BRANCA(1),
@@ -17,7 +15,6 @@ public enum RacaCorEnum {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

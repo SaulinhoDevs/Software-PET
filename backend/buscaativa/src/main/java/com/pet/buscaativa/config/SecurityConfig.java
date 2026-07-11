@@ -38,7 +38,7 @@ public class SecurityConfig {
      * Segurança exclusiva do H2 Console
      */
 
-     @Bean
+    @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) throws Exception {
 
@@ -58,7 +58,7 @@ public class SecurityConfig {
     /*
      * Segurança da API
      */
-     @Bean
+    @Bean
     public SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
@@ -72,9 +72,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                        "/v3/api-docs/**", 
-                        "/swagger-ui/**", 
-                        "/swagger-ui.html").permitAll()
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html").permitAll()
 
                         // Login
                         .requestMatchers("/api/auth/login").permitAll()
@@ -84,6 +84,9 @@ public class SecurityConfig {
 
                         // H2
                         .requestMatchers("/h2-console/**").permitAll()
+
+                        // Rota de erro interna do Spring (evita 403 mascarando outros erros, como 400/500)
+                        .requestMatchers("/error").permitAll()
 
                         // Restante protegido
                         .anyRequest().authenticated()

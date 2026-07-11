@@ -1,7 +1,5 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum TipoAcompanhamento {
 
     GRUPO_TERAPEUTICO(1),
@@ -14,7 +12,6 @@ public enum TipoAcompanhamento {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

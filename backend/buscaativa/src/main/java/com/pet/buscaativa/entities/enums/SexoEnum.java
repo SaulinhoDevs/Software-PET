@@ -1,9 +1,7 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum SexoEnum {
- 
+
     FEMININO(1),
     MASCULINO(2),
     INTERSEXO(3),
@@ -16,7 +14,6 @@ public enum SexoEnum {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

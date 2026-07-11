@@ -1,6 +1,7 @@
 package com.pet.buscaativa.mapping;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.pet.buscaativa.entities.Paciente;
@@ -10,7 +11,10 @@ import com.pet.buscaativa.entities.dto.PacienteDTO;
 public interface PacienteMapper {
     public PacienteDTO toPacienteDTO(Paciente pacienteEntity);
 
+    @Mapping(target = "idPublico", ignore = true)
+    @Mapping(target = "countFaltas", source = "countFaltas", defaultValue = "0")
     public Paciente toPacienteEntity(PacienteDTO pacienteDTO);
 
+    @Mapping(target = "countFaltas", source = "countFaltas", defaultExpression = "java(pacienteEntity.getCountFaltas())")
     void updatePacienteFromDTO(PacienteDTO pacienteDTO, @MappingTarget Paciente pacienteEntity);
 }
