@@ -2,6 +2,7 @@ package com.pet.buscaativa.controllers;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.services.AgendamentoService;
 
+import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -60,9 +62,12 @@ public class AgendamentoController {
     //Atualiza o status do agendamento
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO')")
     @GetMapping("/{id}/status")
-    public ResponseEntity<AgendamentoDTO> atualizarStatus(@PathVariable Long id, @RequestParam SituacaoAtendimento novoStatus) {
-        AgendamentoDTO agendamentoAtualizado = agendamentoService.atualizarStatus(id, novoStatus);
-        
-        return ResponseEntity.ok(agendamentoAtualizado);
+    public ResponseEntity<?> atualizarStatus(@PathVariable Long id, @RequestParam SituacaoAtendimento novoStatus, @RequestParam(required = false) Integer version) {
+        try {
+            AgendamentoDTO agendamentoAtualizado = agendamentoService.atualizarStatus(id, novoStatus, version);
+            return ResponseEntity.ok(agendamentoAtualizado);
+        } catch (OptimisticLockException e) {
+            return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
+        }
     }
 }

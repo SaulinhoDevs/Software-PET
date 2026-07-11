@@ -25,6 +25,7 @@ import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.AgendamentoService;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 
+import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -189,9 +190,14 @@ public class AgendamentoServiceImpl implements AgendamentoService{
 
     @Override
     @Transactional
-    public AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus) {
+    public AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus, Integer expectedVersion) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado para o id"));
+
+        // Controle otimista: se cliente informou expectedVersion, verifica se bate com versão atual.
+        if (expectedVersion != null && !expectedVersion.equals(agendamento.getVersion())) {
+            throw new OptimisticLockException("O agendamento foi alterado por outro usuário. Atualize a agenda antes de tentar novamente.");
+        }
 
         agendamento.setSituacaoAtendimento(novoStatus);
 

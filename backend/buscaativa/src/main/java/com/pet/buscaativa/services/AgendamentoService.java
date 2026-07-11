@@ -23,6 +23,7 @@ public interface AgendamentoService {
 
     List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, Long profissionalId);
 
-    AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus);
+    // Agora aceita expectedVersion para controle otimista (pode ser nulo)
+    AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus, Integer expectedVersion);
 
 }

@@ -35,7 +35,9 @@ public record AgendamentoDTO(
     @NotNull(message = "Defina a hora do Atendimento.")
     LocalTime horaAtendimento,
 
-    SituacaoAtendimento situacaoAtendimento
+    SituacaoAtendimento situacaoAtendimento,
+
+    Integer version
 ) {
     
 }
