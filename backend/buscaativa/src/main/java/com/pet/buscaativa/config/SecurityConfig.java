@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -34,14 +35,9 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final SecurityFilter securityFilter;
 
-    /*
-     * Segurança exclusiva do H2 Console
-     */
-
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) throws Exception {
-
         http
                 .securityMatcher(PathRequest.toH2Console())
                 .csrf(csrf -> csrf.disable())
@@ -55,44 +51,30 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /*
-     * Segurança da API
-     */
     @Bean
     public SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
-
         http
                 .csrf(csrf -> csrf.disable())
-
                 .cors(Customizer.withDefaults())
-
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
+                //Adicione esta linha para desabilitar o filtro anônimo
+                .anonymous(anon -> anon.disable())
+                
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
-
-                        // Login
                         .requestMatchers("/api/auth/login").permitAll()
-
-                        // Permite requisições OPTIONS (CORS)
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // H2
                         .requestMatchers("/h2-console/**").permitAll()
-
-                        // Rota de erro interna do Spring (evita 403 mascarando outros erros, como 400/500)
                         .requestMatchers("/error").permitAll()
-
-                        // Restante protegido
+                        //Qualquer outra requisição DEVE estar autenticada
                         .anyRequest().authenticated()
                 )
-
-                // Filtro JWT
+                //SecurityFilter DEVE vir ANTES do UsernamePasswordAuthenticationFilter
                 .addFilterBefore(
                         securityFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -103,19 +85,15 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-
         DaoAuthenticationProvider provider =
                 new DaoAuthenticationProvider(userDetailsService);
-
         provider.setPasswordEncoder(passwordEncoder);
-
         return provider;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http)
             throws Exception {
-
         return http
                 .getSharedObject(AuthenticationManagerBuilder.class)
                 .authenticationProvider(authenticationProvider())
@@ -124,21 +102,15 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
 
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
-
 }

@@ -36,14 +36,29 @@ public class SecurityFilter extends OncePerRequestFilter {
             var email = tokenService.validarToken(token);
             System.out.println(">>> Email retornado pelo validarToken: '" + email + "'");
 
-            if (!email.isEmpty()) {
-                UserDetails usuario = userDetailsService.loadUserByUsername(email);
-                System.out.println(">>> Authorities do usuário: " + usuario.getAuthorities());
+            //Adicione esta verificação: se o email não estiver vazio, carregue o usuário
+            if (email != null && !email.isEmpty() && !email.isBlank()) {
+                try {
+                    UserDetails usuario = userDetailsService.loadUserByUsername(email);
+                    System.out.println(">>> Usuário encontrado: " + usuario.getUsername());
+                    System.out.println(">>> Authorities do usuário: " + usuario.getAuthorities());
 
-                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                System.out.println(">>> Autenticação setada no contexto com sucesso.");
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            usuario, 
+                            null, 
+                            usuario.getAuthorities()
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println(">>>Autenticação setada com sucesso!");
+                } catch (Exception e) {
+                    System.out.println(">>>Erro ao carregar usuário: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println(">>>Email vazio ou nulo do token!");
             }
+        } else {
+            System.out.println(">>> ⚠️ Nenhum token encontrado na requisição");
         }
 
         filterChain.doFilter(request, response);
@@ -51,8 +66,15 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private String recuperarToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+        System.out.println(">>> Header Authorization: " + authHeader);
+        
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println(">>> Header inválido ou ausente");
+            return null;
+        }
 
-        return authHeader.replace("Bearer ", "");
+        String token = authHeader.replace("Bearer ", "");
+        System.out.println(">>> Token extraído: " + token.substring(0, Math.min(50, token.length())) + "...");
+        return token;
     }
 }
