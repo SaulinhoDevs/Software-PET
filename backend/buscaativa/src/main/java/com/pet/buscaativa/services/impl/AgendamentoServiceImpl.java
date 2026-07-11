@@ -14,6 +14,7 @@ import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
+import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
 import com.pet.buscaativa.mapping.AgendamentoMapper;
@@ -51,6 +52,12 @@ public class AgendamentoServiceImpl implements AgendamentoService{
         if (agendamentoDTO.id() != null) {
             var original = agendamentoRepository.findById(agendamentoDTO.id())
                     .orElseThrow(() -> new RuntimeException("Agendamento original não encontrado"));
+
+            //para Grupo Terapêutico NÃO tem remarcação individual
+            Paciente pacienteOriginal = original.getPaciente();
+            if (pacienteOriginal != null && pacienteOriginal.getTipoAcompanhamento() == TipoAcompanhamento.GRUPO_TERAPEUTICO) {
+                throw new ValidationException("Remarcação individual não permitida para atendimentos de Grupo Terapêutico.");
+            }
             
             original.setSituacaoAtendimento(SituacaoAtendimento.REMARCADO_ORIGEM);
             agendamento.setAgendamentoOriginal(original);
@@ -69,6 +76,12 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     public List<LocalDate> sugerirDataRemarcacao(Long agendamento){
         var original = agendamentoRepository.findById(agendamento)
                         .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
+
+        //se original for Grupo Terapêutico, não sugerir remarcação individual
+        if (original.getPaciente() != null && original.getPaciente().getTipoAcompanhamento() == TipoAcompanhamento.GRUPO_TERAPEUTICO) {
+            throw new ValidationException("Não é possível sugerir remarcação individual para atendimentos de Grupo Terapêutico.");
+        }
+
 
         return buscarProximasVagasDisponiveis(original.getUsuario(), original.getTurnoAgendamento(), LocalDate.now(), 3);
     }

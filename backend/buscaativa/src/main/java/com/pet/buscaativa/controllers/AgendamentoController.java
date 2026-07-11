@@ -35,20 +35,32 @@ public class AgendamentoController {
     //Cria agendamento
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCAO')")
     @PostMapping
-    public ResponseEntity<AgendamentoDTO> criarAgendamento(@RequestBody @Valid AgendamentoDTO agendamentoDTO) {
-        AgendamentoDTO agendamentoCriado = agendamentoService.save(agendamentoDTO);
-        
-        java.net.URI uri = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(agendamentoCriado.id()).toUri();
-                
-        return ResponseEntity.created(uri).body(agendamentoCriado);
+    public ResponseEntity<?> criarAgendamento(@RequestBody @Valid AgendamentoDTO agendamentoDTO) {
+        try {
+            AgendamentoDTO agendamentoCriado = agendamentoService.save(agendamentoDTO);
+
+            java.net.URI uri = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                    .buildAndExpand(agendamentoCriado.id()).toUri();
+                    
+            return ResponseEntity.created(uri).body(agendamentoCriado);
+        } catch (ValidationException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            // manter comportamento anterior para outras exceções (poderá ser centralizado no GlobalExceptionHandler posteriormente)
+            return ResponseEntity.status(500).body(Map.of("error", "Erro interno"));
+        }
     }
 
     //Sugere 3 datas para Remarcar Agendamento como foi pedido nos requisitos
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCAO')")
     @GetMapping("/{id}/remarcacao")
-    public ResponseEntity<List<LocalDate>> sugerirRemarcacao(@PathVariable Long id) {
-        return ResponseEntity.ok(agendamentoService.sugerirDataRemarcacao(id));
+    public ResponseEntity<?> sugerirRemarcacao(@PathVariable Long id) {
+        try {
+            List<LocalDate> sugestoes = agendamentoService.sugerirDataRemarcacao(id);
+            return ResponseEntity.ok(sugestoes);
+        } catch (ValidationException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     //Busca a agenda do dia do progissional
