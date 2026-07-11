@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.services.AgendamentoService;
+import com.pet.buscaativa.services.exceptions.ValidationException;
 
 import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.Valid;
@@ -68,6 +69,8 @@ public class AgendamentoController {
             return ResponseEntity.ok(agendamentoAtualizado);
         } catch (OptimisticLockException e) {
             return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
+        } catch (ValidationException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

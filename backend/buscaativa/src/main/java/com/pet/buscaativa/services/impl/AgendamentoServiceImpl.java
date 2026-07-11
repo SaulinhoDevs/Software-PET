@@ -24,6 +24,7 @@ import com.pet.buscaativa.repositories.PacienteRepository;
 import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.AgendamentoService;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
+import com.pet.buscaativa.services.exceptions.ValidationException;
 
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
@@ -193,6 +194,12 @@ public class AgendamentoServiceImpl implements AgendamentoService{
     public AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus, Integer expectedVersion) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado para o id"));
+
+        //só permitir registrar presença/falta para agendamentos com data <= hoje
+        LocalDate dataAgendamento = agendamento.getDataAgendamento();
+        if (dataAgendamento != null && dataAgendamento.isAfter(LocalDate.now())) {
+            throw new ValidationException("Não é permitido registrar presença ou falta para agendamentos com data futura.");
+        }
 
         // Controle otimista: se cliente informou expectedVersion, verifica se bate com versão atual.
         if (expectedVersion != null && !expectedVersion.equals(agendamento.getVersion())) {
