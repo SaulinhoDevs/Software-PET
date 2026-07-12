@@ -17,11 +17,11 @@ public record AgendamentoDTO(
 
     @NotBlank
     @NotNull
-    Usuario usuario,
+    Long usuarioId,
 
     @NotBlank
     @NotNull
-    Paciente paciente,
+    Long pacienteId,
 
     @NotBlank
     @NotNull(message = "Defina uma data para o Atendimento.")
