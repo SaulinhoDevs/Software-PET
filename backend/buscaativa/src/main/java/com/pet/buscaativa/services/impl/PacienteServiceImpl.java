@@ -9,6 +9,7 @@ import com.pet.buscaativa.services.PacienteService;
 import com.pet.buscaativa.services.exceptions.DatabaseException;
 import com.pet.buscaativa.services.exceptions.RecursoDuplicadoException;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
+import com.pet.buscaativa.utils.DocumentoUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -77,7 +78,8 @@ public class PacienteServiceImpl implements PacienteService{
 
         if (pacienteDTO.cpf() != null && !pacienteDTO.cpf().isBlank()) {
             possuiDoc = true;
-            pacienteRepository.findByCpf(pacienteDTO.cpf()).ifPresent(p -> {
+            String cpfNormalizado = DocumentoUtil.normalizarCPF(pacienteDTO.cpf());
+            pacienteRepository.findByCpf(cpfNormalizado).ifPresent(p -> {
                 if (!p.getId().equals(pacienteDTO.idPublico())) {
                     throw new RecursoDuplicadoException("Já existe um paciente com este CPF.");
                 }
@@ -86,7 +88,8 @@ public class PacienteServiceImpl implements PacienteService{
 
         if (pacienteDTO.cns() != null && !pacienteDTO.cns().isBlank()) {
             possuiDoc = true;
-            pacienteRepository.findByCns(pacienteDTO.cns()).ifPresent(p -> {
+            String cnsNormalizado = DocumentoUtil.normalizarCNS(pacienteDTO.cns());
+            pacienteRepository.findByCns(cnsNormalizado).ifPresent(p -> {
                 if (!p.getId().equals(pacienteDTO.idPublico())) {
                     throw new RecursoDuplicadoException("Já existe um paciente com este CNS.");
                 }
@@ -114,7 +117,8 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public PacienteDTO findByCns(String cns) {
-        Paciente paciente = pacienteRepository.findByCns(cns)
+        String cnsNormalizado = DocumentoUtil.normalizarCNS(cns);
+        Paciente paciente = pacienteRepository.findByCns(cnsNormalizado)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CNS informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 
@@ -122,7 +126,8 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public PacienteDTO findByCpf(String cpf) {
-        Paciente paciente = pacienteRepository.findByCpf(cpf)
+        String cpfNormalizado = DocumentoUtil.normalizarCPF(cpf);
+        Paciente paciente = pacienteRepository.findByCpf(cpfNormalizado)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CPF informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 

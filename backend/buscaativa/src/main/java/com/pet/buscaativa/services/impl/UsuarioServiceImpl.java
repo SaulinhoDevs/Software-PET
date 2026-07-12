@@ -36,6 +36,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             usuarioSalvar = usuarioRepository.findByIdPublico(usuarioDTO.idPublico())
                     .orElseThrow(() -> new DatabaseException("Usuário não encontrado!"));
 
+            usuarioSalvar.setNome(usuarioDTO.nome());
             usuarioSalvar.setEmail(usuarioDTO.email());
             usuarioSalvar.setTipoUsuario(usuarioDTO.tipoUsuario());
             usuarioSalvar.setUnidadeAtuacao(usuarioDTO.unidadeAtuacao());
@@ -75,9 +76,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void validarEmailDuplicado(String email, UUID idPublic) {
         usuarioRepository.findByEmail(email).ifPresent(
                 usuario -> {
-                    if (!usuario.getId().equals(idPublic)) {
+                    // Se o email já existe, mas pertence a um usuário DIFERENTE, lança exceção
+                    if (!usuario.getIdPublico().equals(idPublic)) {
                         throw new RecursoDuplicadoException("E-mail já cadastrado no sistema!");
                     }
+                    // Se pertence ao mesmo usuário (idPublic é igual), permite continuar
                 });
     }
 

@@ -22,11 +22,9 @@ public record UsuarioDTO(
     String email,
 
 
-    @NotBlank
     @NotNull(message = "O tipo de usuário deve ser selecionado.")
     TipoUsuario tipoUsuario,
 
-    @NotBlank
     @NotNull(message = "A unidade de atuação deve ser informada.")
     UnidadeAtuacao unidadeAtuacao,
 

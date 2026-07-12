@@ -1,0 +1,26 @@
+### 🔐 LOGIN
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pet.com",
+  "senha": "123456"
+}
+
+###
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJidXNjYWF0aXZhLWFwaSIsInN1YiI6ImFkbWluQHBldC5jb20iLCJleHAiOjE3ODM4MjgyMDR9.3rfCSmJDF0KHl3KUHUwjHtNXoPLQGr1E3-55dUHvDkM
+
+PUT http://localhost:8080/api/usuarios/22e6cffa-cff3-4e76-be07-6ac93aaab38e
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Dr. Carlos Médico Atualizado",
+  "email": "carlos.novo@hospital.com",
+  "tipoUsuario": 1,
+  "unidadeAtuacao": 3,
+  "senha": "novaSenha@123456"
+}
+
+
+

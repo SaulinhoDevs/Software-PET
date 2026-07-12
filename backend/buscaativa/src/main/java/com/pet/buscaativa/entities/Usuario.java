@@ -50,6 +50,13 @@ public class Usuario extends AbstractEntities implements Serializable, UserDetai
     @Convert(converter = UnidadeAtuacaoConverter.class)
     private UnidadeAtuacao unidadeAtuacao;
 
+    @PrePersist
+    public void prePersist() {
+        if (this.idPublico == null) {
+            this.idPublico = UUID.randomUUID();
+        }
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(

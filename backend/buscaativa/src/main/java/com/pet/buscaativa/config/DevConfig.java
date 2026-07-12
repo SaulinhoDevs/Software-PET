@@ -26,6 +26,7 @@ public class DevConfig implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         Usuario admin = new Usuario();
+        admin.setNome("TaylorSwift");
         admin.setEmail("admin@pet.com");
         admin.setSenha(passwordEncoder.encode("123456"));
         admin.setTipoUsuario(TipoUsuario.ADMINISTRADOR);
