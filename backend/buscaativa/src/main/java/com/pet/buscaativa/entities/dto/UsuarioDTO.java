@@ -21,7 +21,6 @@ public record UsuarioDTO(
     @NotNull(message = "O campo de e-mail não pode ficar vazio.")
     String email,
 
-
     @NotNull(message = "O tipo de usuário deve ser selecionado.")
     TipoUsuario tipoUsuario,
 

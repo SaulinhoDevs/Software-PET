@@ -1,7 +1,5 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum UnidadeAtuacao {
     
     USF(1),
@@ -15,7 +13,6 @@ public enum UnidadeAtuacao {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

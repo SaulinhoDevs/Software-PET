@@ -7,6 +7,10 @@
     </div>
   </section>
 
+  <div class="alert-erro" *ngIf="erroGeral">
+    {{ erroGeral }}
+  </div>
+
   <form class="form-card" [formGroup]="profissionalForm" (ngSubmit)="salvarProfissional()">
 
     <section class="form-section">
@@ -15,54 +19,76 @@
 
       <div class="form-grid">
 
+        <!-- Nome -->
         <div class="form-group form-group-large">
+
           <label>Nome</label>
 
-          <input type="text" formControlName="nome" placeholder="Digite o nome completo">
+          <input type="text" formControlName="nome" placeholder="Digite o nome completo" />
 
-          <small *ngIf="campoInvalido('nome')">
-            Nome é obrigatório.
+          <small *ngIf="campoInvalido('nome') || errosPorCampo['nome']">
+            {{ mensagemErro('nome', 'Digite o nome do profissional.') }}
           </small>
+
         </div>
 
+        <!-- Email -->
         <div class="form-group form-group-large">
+
           <label>E-mail</label>
 
-          <input type="email" formControlName="email" placeholder="Digite o e-mail">
+          <input type="email" formControlName="email" placeholder="Digite o e-mail" />
 
-          <small *ngIf="campoInvalido('email')">
-            Informe um e-mail válido.
+          <small *ngIf="campoInvalido('email') || errosPorCampo['email']">
+            {{ mensagemErro('email', 'Informe um e-mail válido.') }}
           </small>
+
         </div>
 
+        <!-- Senha -->
         <div class="form-group">
+
           <label>Senha</label>
 
-          <input type="password" formControlName="senha" placeholder="Digite a senha">
+          <input type="password" formControlName="senha" placeholder="Digite a senha" />
 
-          <small *ngIf="campoInvalido('senha')">
-            Senha é obrigatória.
+          <small *ngIf="campoInvalido('senha') || errosPorCampo['senha']">
+            {{
+            mensagemErro(
+            'senha',
+            'A senha deve possuir pelo menos 6 caracteres.'
+            )
+            }}
           </small>
+
         </div>
 
+        <!-- Confirmar senha -->
         <div class="form-group">
+
           <label>Confirmar senha</label>
 
-          <input type="password" formControlName="confirmarSenha" placeholder="Repita a senha">
+          <input type="password" formControlName="confirmarSenha" placeholder="Repita a senha" />
 
-          <small *ngIf="campoInvalido('confirmarSenha')">
+          <small *ngIf="
+              campoInvalido('confirmarSenha') &&
+              !profissionalForm.hasError('senhasDiferentes')
+            ">
             Confirme a senha.
           </small>
 
-          <small *ngIf="profissionalForm.hasError('senhasDiferentes') &&
-                   profissionalForm.get('confirmarSenha')?.touched">
-
+          <small *ngIf="
+              profissionalForm.hasError('senhasDiferentes') &&
+              profissionalForm.get('confirmarSenha')?.touched
+            ">
             As senhas não coincidem.
-
           </small>
+
         </div>
 
+        <!-- Cargo -->
         <div class="form-group">
+
           <label>Cargo / Função</label>
 
           <select formControlName="tipoUsuario">
@@ -71,20 +97,21 @@
               Selecione um cargo
             </option>
 
-            <option *ngFor="let tipo of tipoUsuarioOptions" [ngValue]="tipo">
-
-              {{ labelTipoUsuario(tipo) }}
-
+            <option *ngFor="let tipo of tipoUsuarioOptions" [value]="tipo">
+              {{ labelEnum(tipo) }}
             </option>
 
           </select>
 
-          <small *ngIf="campoInvalido('tipoUsuario')">
-            Cargo é obrigatório.
+          <small *ngIf="campoInvalido('tipoUsuario') || errosPorCampo['tipoUsuario']">
+            {{ mensagemErro('tipoUsuario', 'O tipo de usuário deve ser selecionado.') }}
           </small>
+
         </div>
 
+        <!-- Unidade -->
         <div class="form-group">
+
           <label>Unidade de atuação</label>
 
           <select formControlName="unidadeAtuacao">
@@ -93,17 +120,16 @@
               Selecione a unidade
             </option>
 
-            <option *ngFor="let unidade of unidadeAtuacaoOptions" [ngValue]="unidade">
-
-              {{ labelUnidadeAtuacao(unidade) }}
-
+            <option *ngFor="let unidade of unidadeAtuacaoOptions" [value]="unidade">
+              {{ labelEnum(unidade) }}
             </option>
 
           </select>
 
-          <small *ngIf="campoInvalido('unidadeAtuacao')">
-            Unidade de atuação é obrigatória.
+          <small *ngIf="campoInvalido('unidadeAtuacao') || errosPorCampo['unidadeAtuacao']">
+            {{ mensagemErro('unidadeAtuacao', 'A unidade de atuação deve ser informada.') }}
           </small>
+
         </div>
 
       </div>
@@ -113,15 +139,12 @@
     <section class="form-actions">
 
       <button type="button" class="btn btn-cancel" (click)="cancelar()" [disabled]="salvando">
-
         Cancelar
-
       </button>
 
-      <button type="submit" class="btn btn-save" [disabled]="salvando">
-
+      <button type="submit" class="btn btn-save"
+        [disabled]="profissionalForm.invalid || profissionalForm.hasError('senhasDiferentes') || salvando">
         {{ salvando ? 'Salvando...' : 'Salvar Profissional' }}
-
       </button>
 
     </section>
