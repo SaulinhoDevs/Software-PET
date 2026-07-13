@@ -13,6 +13,7 @@ import com.pet.buscaativa.services.exceptions.DatabaseException;
 import com.pet.buscaativa.services.exceptions.RecursoDuplicadoException;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 
+import com.pet.buscaativa.services.exceptions.ValidationException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +30,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioDTO save(UsuarioDTO usuarioDTO) {
         validarEmailDuplicado(usuarioDTO.email(), usuarioDTO.idPublico());
+
+        // Senha é obrigatória apenas no cadastro (idPublico == null)
+        boolean isCadastro = usuarioDTO.idPublico() == null;
+
+        if (isCadastro && (usuarioDTO.senha() == null || usuarioDTO.senha().isBlank())) {
+            throw new ValidationException("O campo de senha não pode ficar vazio.");
+        }
 
         Usuario usuarioSalvar;
 
@@ -97,10 +105,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public void removerUsuario(UUID idPublico) {
         var usuarioEntity = usuarioRepository.findByIdPublico(idPublico).orElse(null);
-        if(usuarioEntity == null){
+        if (usuarioEntity == null) {
             throw new DatabaseException("Usuário não encontrado para remoção.");
-        }else{
-            usuarioRepository.deleteById(usuarioEntity.getId()); 
+        } else {
+            usuarioRepository.deleteById(usuarioEntity.getId());
         }
 
     }

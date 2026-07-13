@@ -26,21 +26,21 @@ public class DevConfig implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         Usuario admin = new Usuario();
-        admin.setNome("TaylorSwift");
+        admin.setNome("Administrador");
         admin.setEmail("admin@pet.com");
         admin.setSenha(passwordEncoder.encode("123456"));
         admin.setTipoUsuario(TipoUsuario.ADMINISTRADOR);
         admin.setUnidadeAtuacao(UnidadeAtuacao.USF);
 
         Usuario medico = new Usuario();
-        medico.setNome("Dr. João Medico");
-        medico.setEmail("medico@pet.com");
+        medico.setNome("João Ferreira");
+        medico.setEmail("profissional@pet.com");
         medico.setSenha(passwordEncoder.encode("123456"));
         medico.setTipoUsuario(TipoUsuario.PROFISSIONAL);
         medico.setUnidadeAtuacao(UnidadeAtuacao.CAPS_AD);
 
         Usuario recepcao = new Usuario();
-        recepcao.setNome("Recepção Central");
+        recepcao.setNome("Ana de Jesus");
         recepcao.setEmail("recepcao@pet.com");
         recepcao.setSenha(passwordEncoder.encode("123456"));
         recepcao.setTipoUsuario(TipoUsuario.RECEPCAO);

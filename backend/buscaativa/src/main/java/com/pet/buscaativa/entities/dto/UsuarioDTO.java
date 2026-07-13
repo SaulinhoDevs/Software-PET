@@ -11,35 +11,33 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record UsuarioDTO(
-    UUID idPublico,
-    
-    @NotBlank
-    @NotNull(message = "Digite o nome do profissional.")
-    String nome,
+        UUID idPublico,
 
-    @NotBlank
-    @NotNull(message = "O campo de e-mail não pode ficar vazio.")
-    String email,
+        @NotBlank
+        @NotNull(message = "Digite o nome do profissional.")
+        String nome,
 
-    @NotNull(message = "O tipo de usuário deve ser selecionado.")
-    TipoUsuario tipoUsuario,
+        @NotBlank
+        @NotNull(message = "O campo de e-mail não pode ficar vazio.")
+        String email,
 
-    @NotNull(message = "A unidade de atuação deve ser informada.")
-    UnidadeAtuacao unidadeAtuacao,
+        @NotNull(message = "O tipo de usuário deve ser selecionado.")
+        TipoUsuario tipoUsuario,
 
-    @NotBlank
-    @NotNull(message = "O campo de senha não pode ficar vazio.")
-    @Size(min = 6)
-    String senha) {
+        @NotNull(message = "A unidade de atuação deve ser informada.")
+        UnidadeAtuacao unidadeAtuacao,
+
+        @Size(min = 6, message = "A senha deve ter pelo menos 6 caracteres.")
+        String senha) {
 
     public UsuarioDTO(Usuario entity) {
         this(
-            entity.getIdPublico(), 
-            entity.getNome(),
-            entity.getEmail(), 
-            entity.getTipoUsuario(), 
-            entity.getUnidadeAtuacao(),
-            null
+                entity.getIdPublico(),
+                entity.getNome(),
+                entity.getEmail(),
+                entity.getTipoUsuario(),
+                entity.getUnidadeAtuacao(),
+                null
         );
     }
 }
