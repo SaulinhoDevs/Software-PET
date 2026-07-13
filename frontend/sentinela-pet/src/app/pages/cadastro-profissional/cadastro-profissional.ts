@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -9,7 +9,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   ProfissionalPayload,
@@ -38,28 +38,26 @@ enum UnidadeAtuacao {
   templateUrl: './cadastro-profissional.html',
   styleUrl: './cadastro-profissional.css',
 })
-export class CadastroProfissional {
+export class CadastroProfissional implements OnInit {
   tipoUsuarioOptions = Object.values(TipoUsuario);
   unidadeAtuacaoOptions = Object.values(UnidadeAtuacao);
 
   salvando = false;
+  carregando = false;
 
   erroGeral: string | null = null;
-
   errosPorCampo: Record<string, string> = {};
+
+  modoEdicao = false;
+  idPublico: string | null = null;
 
   profissionalForm = new FormGroup(
     {
       nome: new FormControl('', Validators.required),
-
       email: new FormControl('', [Validators.required, Validators.email]),
-
       senha: new FormControl('', [Validators.required, Validators.minLength(6)]),
-
       confirmarSenha: new FormControl('', Validators.required),
-
       tipoUsuario: new FormControl<string | null>(null, Validators.required),
-
       unidadeAtuacao: new FormControl<string | null>(null, Validators.required),
     },
     {
@@ -69,8 +67,46 @@ export class CadastroProfissional {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private profissionalService: ProfissionalService,
   ) {}
+
+  ngOnInit(): void {
+    this.idPublico = this.route.snapshot.paramMap.get('id');
+    this.modoEdicao = !!this.idPublico;
+
+    if (this.modoEdicao) {
+      // Na edição, a senha é opcional — só valida se o usuário preencher algo
+      this.profissionalForm.get('senha')?.setValidators([Validators.minLength(6)]);
+      this.profissionalForm.get('confirmarSenha')?.clearValidators();
+      this.profissionalForm.get('senha')?.updateValueAndValidity();
+      this.profissionalForm.get('confirmarSenha')?.updateValueAndValidity();
+
+      this.carregarProfissional(this.idPublico!);
+    }
+  }
+
+  carregarProfissional(idPublico: string): void {
+    this.carregando = true;
+
+    this.profissionalService.buscarPorId(idPublico).subscribe({
+      next: (profissional) => {
+        this.profissionalForm.patchValue({
+          nome: profissional.nome,
+          email: profissional.email,
+          tipoUsuario: profissional.tipoUsuario,
+          unidadeAtuacao: profissional.unidadeAtuacao,
+        });
+        this.carregando = false;
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar profissional', erro);
+        this.erroGeral = 'Não foi possível carregar os dados do profissional.';
+        this.carregando = false;
+      },
+    });
+  }
+
   salvarProfissional(): void {
     this.erroGeral = null;
     this.errosPorCampo = {};
@@ -92,10 +128,19 @@ export class CadastroProfissional {
       unidadeAtuacao: form.unidadeAtuacao ?? '',
     };
 
-    this.profissionalService.cadastrar(profissional).subscribe({
+    const request$ = this.modoEdicao
+      ? this.profissionalService.atualizar(this.idPublico!, profissional)
+      : this.profissionalService.cadastrar(profissional);
+
+    request$.subscribe({
       next: () => {
         this.salvando = false;
-        this.router.navigate(['/profissionais']);
+
+        if (this.modoEdicao) {
+          this.router.navigate(['/profissionais/detalhes', this.idPublico]);
+        } else {
+          this.router.navigate(['/profissionais']);
+        }
       },
       error: (erro: HttpErrorResponse) => {
         this.salvando = false;
@@ -110,7 +155,6 @@ export class CadastroProfissional {
       return;
     }
 
-    // Erros de validação (@Valid)
     if (erro.status === 422 && Array.isArray(erro.error.errors)) {
       const validationError = erro.error as ValidationError;
 
@@ -123,22 +167,21 @@ export class CadastroProfissional {
       return;
     }
 
-    // Conflitos (email já cadastrado, etc.)
     if (erro.status === 409) {
       const standardError = erro.error as StandardError;
-
       this.erroGeral = standardError.message ?? 'Já existe um profissional com esses dados.';
       return;
     }
 
-    // Outros erros conhecidos
     if (erro.error.message) {
       const standardError = erro.error as StandardError;
       this.erroGeral = standardError.message;
       return;
     }
 
-    this.erroGeral = 'Não foi possível cadastrar o profissional.';
+    this.erroGeral = this.modoEdicao
+      ? 'Não foi possível atualizar o profissional.'
+      : 'Não foi possível cadastrar o profissional.';
   }
 
   private marcarCamposComoTocados(): void {
@@ -146,13 +189,17 @@ export class CadastroProfissional {
       this.profissionalForm.get(campo)?.markAsTouched();
     });
   }
+
   cancelar(): void {
-    this.router.navigate(['/profissionais']);
+    if (this.modoEdicao && this.idPublico) {
+      this.router.navigate(['/profissionais/detalhes', this.idPublico]);
+    } else {
+      this.router.navigate(['/profissionais']);
+    }
   }
 
   campoInvalido(campo: string): boolean {
     const control = this.profissionalForm.get(campo);
-
     return !!control && control.invalid && (control.touched || control.dirty);
   }
 
@@ -171,10 +218,13 @@ export class CadastroProfissional {
     const senha = form.get('senha')?.value;
     const confirmarSenha = form.get('confirmarSenha')?.value;
 
+    // Em edição, deixar ambos vazios é válido (mantém a senha atual)
+    if (!senha && !confirmarSenha) {
+      return null;
+    }
+
     if (senha !== confirmarSenha) {
-      return {
-        senhasDiferentes: true,
-      };
+      return { senhasDiferentes: true };
     }
 
     return null;

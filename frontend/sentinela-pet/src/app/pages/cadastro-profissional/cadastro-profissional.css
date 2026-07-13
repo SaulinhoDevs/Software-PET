@@ -190,6 +190,15 @@ small {
   }
 }
 
+.loading-message {
+  text-align: center;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 14px;
+  color: #64748b;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
 /* Celular */
 @media (max-width: 600px) {
   .container {

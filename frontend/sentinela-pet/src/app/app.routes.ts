@@ -12,19 +12,17 @@ import { authGuard } from './auth/auth-guard';
 import { Profissionais } from './pages/profissionais/profissionais';
 import { CadastroProfissional } from './pages/cadastro-profissional/cadastro-profissional';
 import { DetalhePaciente } from './pages/detalhe-paciente/detalhe-paciente';
+import { DetalheProfissional } from './pages/detalhe-profissional/detalhe-profissional';
 
 export const routes: Routes = [
-  // Redireciona a raiz para o login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // Rotas SEM header e sidebar (login)
   {
     path: '',
     component: AuthLayout,
     children: [{ path: 'login', component: Login, canActivate: [loginGuard] }],
   },
 
-  // Rotas COM header e sidebar
   {
     path: '',
     component: MainLayout,
@@ -38,6 +36,8 @@ export const routes: Routes = [
       { path: 'pacientes/novo', component: CadastroPaciente },
       { path: 'profissionais', component: Profissionais },
       { path: 'profissionais/novo', component: CadastroProfissional },
+      { path: 'profissionais/detalhes/:id', component: DetalheProfissional },
+      { path: 'profissionais/editar/:id', component: CadastroProfissional },
     ],
   },
 ];

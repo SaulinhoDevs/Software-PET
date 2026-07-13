@@ -33,19 +33,21 @@ public class DevConfig implements CommandLineRunner {
         admin.setUnidadeAtuacao(UnidadeAtuacao.USF);
 
         Usuario medico = new Usuario();
+        medico.setNome("Dr. João Medico");
         medico.setEmail("medico@pet.com");
         medico.setSenha(passwordEncoder.encode("123456"));
         medico.setTipoUsuario(TipoUsuario.PROFISSIONAL);
         medico.setUnidadeAtuacao(UnidadeAtuacao.CAPS_AD);
 
         Usuario recepcao = new Usuario();
+        recepcao.setNome("Recepção Central");
         recepcao.setEmail("recepcao@pet.com");
         recepcao.setSenha(passwordEncoder.encode("123456"));
         recepcao.setTipoUsuario(TipoUsuario.RECEPCAO);
         recepcao.setUnidadeAtuacao(UnidadeAtuacao.CAPS_II);
 
         usuarioRepository.saveAll(
-            Arrays.asList(admin, medico, recepcao)
+                Arrays.asList(admin, medico, recepcao)
         );
     }
 

@@ -1,60 +1,58 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
-enum TipoUsuario {
-  ADMINISTRADOR = 1,
-  PROFISSIONAL = 2,
-  RECEPCAO = 3,
-}
-
-interface Profissional {
-  id: number;
-  nome: string;
-  tipoUsuario: TipoUsuario;
-}
+import {
+  ProfissionalPayload,
+  ProfissionalService,
+} from '../../services/profissional/profissional-service';
 
 @Component({
   selector: 'app-profissionais',
-  imports: [CommonModule, FormsModule, RouterLink],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './profissionais.html',
   styleUrl: './profissionais.css',
 })
-export class Profissionais {
+export class Profissionais implements OnInit {
   termoPesquisa = '';
-  tipoUsuarioSelecionado: number | '' = '';
+  tipoUsuarioSelecionado = '';
 
-  tipoUsuarioOptions = Object.values(TipoUsuario).filter(
-    (value) => typeof value === 'number',
-  ) as number[];
+  tipoUsuarioOptions = ['ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO'];
 
-  profissionais: Profissional[] = [
-    {
-      id: 1,
-      nome: 'João Pereira',
-      tipoUsuario: TipoUsuario.ADMINISTRADOR,
-    },
-    {
-      id: 2,
-      nome: 'Maria Oliveira',
-      tipoUsuario: TipoUsuario.PROFISSIONAL,
-    },
-    {
-      id: 3,
-      nome: 'Carlos Souza',
-      tipoUsuario: TipoUsuario.RECEPCAO,
-    },
-    {
-      id: 4,
-      nome: 'Ana Santos',
-      tipoUsuario: TipoUsuario.PROFISSIONAL,
-    },
-  ];
+  profissionais: ProfissionalPayload[] = [];
 
-  constructor(private router: Router) {}
+  carregando = false;
+  erro: string | null = null;
 
-  get profissionaisFiltrados(): Profissional[] {
+  constructor(
+    private router: Router,
+    private profissionalService: ProfissionalService,
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarProfissionais();
+  }
+
+  carregarProfissionais(): void {
+    this.carregando = true;
+    this.erro = null;
+
+    this.profissionalService.listar().subscribe({
+      next: (profissionais) => {
+        this.profissionais = profissionais;
+        this.carregando = false;
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar profissionais', erro);
+        this.erro = 'Não foi possível carregar os profissionais.';
+        this.carregando = false;
+      },
+    });
+  }
+
+  get profissionaisFiltrados(): ProfissionalPayload[] {
     return this.profissionais.filter((profissional) => {
       const nomeOk = profissional.nome.toLowerCase().includes(this.termoPesquisa.toLowerCase());
 
@@ -70,27 +68,18 @@ export class Profissionais {
     this.router.navigate(['/profissionais/novo']);
   }
 
-  verDetalhes(id: number): void {
-    this.router.navigate(['/profissionais', id]);
+  verDetalhes(idPublico: string): void {
+    this.router.navigate(['/profissionais/detalhes', idPublico]);
   }
 
-  editarProfissional(id: number): void {
-    this.router.navigate(['/profissionais', id, 'editar']);
+  editarProfissional(idPublico: string): void {
+    this.router.navigate(['/profissionais/editar', idPublico]);
   }
 
-  labelTipoUsuario(tipo: number): string {
-    switch (tipo) {
-      case TipoUsuario.ADMINISTRADOR:
-        return 'Administrador';
-
-      case TipoUsuario.PROFISSIONAL:
-        return 'Profissional';
-
-      case TipoUsuario.RECEPCAO:
-        return 'Recepção';
-
-      default:
-        return '';
-    }
+  labelEnum(valor: string): string {
+    return valor
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (letra) => letra.toUpperCase());
   }
 }
