@@ -7,7 +7,7 @@ export interface ProfissionalPayload {
 
   nome: string;
   email: string;
-  senha: string;
+  senha: string | null;
 
   tipoUsuario: string;
   unidadeAtuacao: string;

@@ -120,10 +120,12 @@ export class CadastroProfissional implements OnInit {
 
     const form = this.profissionalForm.getRawValue();
 
+    const senhaPreenchida = form.senha && form.senha.trim().length > 0;
+
     const profissional: ProfissionalPayload = {
       nome: form.nome?.trim() ?? '',
       email: form.email?.trim().toLowerCase() ?? '',
-      senha: form.senha ?? '',
+      senha: senhaPreenchida ? form.senha!.trim() : null,
       tipoUsuario: form.tipoUsuario ?? '',
       unidadeAtuacao: form.unidadeAtuacao ?? '',
     };
