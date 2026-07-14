@@ -2,13 +2,18 @@
 
   <section class="page-header">
     <div>
-      <h1>Cadastrar Paciente</h1>
-      <p>Preencha os dados abaixo para cadastrar um novo paciente no sistema.</p>
+      <h1>{{ modoEdicao ? 'Editar Paciente' : 'Cadastrar Paciente' }}</h1>
+      <p>{{ modoEdicao ? 'Atualize os dados do paciente.' : 'Preencha os dados abaixo para cadastrar um novo paciente
+        nosistema.' }}</p>
     </div>
   </section>
 
   <div class="alert-erro" *ngIf="erroGeral">
     {{ erroGeral }}
+  </div>
+
+  <div class="loading-message" *ngIf="carregandoPaciente">
+    Carregando dados do paciente...
   </div>
 
   <form class="form-card" [formGroup]="pacienteForm" (ngSubmit)="salvarPaciente()">
@@ -238,7 +243,7 @@
       </button>
 
       <button type="submit" class="btn btn-save" [disabled]="salvando">
-        {{ salvando ? 'Salvando...' : 'Salvar Paciente' }}
+        {{ salvando ? 'Salvando...' : (modoEdicao ? 'Salvar Alterações' : 'Salvar Paciente') }}
       </button>
     </section>
 

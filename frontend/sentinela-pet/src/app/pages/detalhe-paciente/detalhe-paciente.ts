@@ -60,7 +60,7 @@ export class DetalhePaciente implements OnInit {
 
   editarPaciente(): void {
     if (!this.paciente?.idPublico) return;
-    this.router.navigate(['/pacientes', this.paciente.idPublico, 'editar']);
+    this.router.navigate(['/pacientes/editar', this.paciente.idPublico]);
   }
 
   pedirConfirmacaoInativacao(): void {

@@ -34,6 +34,7 @@ export const routes: Routes = [
       { path: 'pacientes', component: Pacientes },
       { path: 'pacientes/detalhes/:id', component: DetalhePaciente },
       { path: 'pacientes/novo', component: CadastroPaciente },
+      { path: 'pacientes/editar/:id', component: CadastroPaciente },
       { path: 'profissionais', component: Profissionais },
       { path: 'profissionais/novo', component: CadastroProfissional },
       { path: 'profissionais/detalhes/:id', component: DetalheProfissional },

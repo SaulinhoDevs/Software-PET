@@ -88,7 +88,7 @@ export class Pacientes implements OnInit {
   }
 
   editarPaciente(idPublico: string): void {
-    this.router.navigate(['/pacientes', idPublico, 'editar']);
+    this.router.navigate(['/pacientes/editar', idPublico]);
   }
 
   formatarCpf(cpf: string): string {
