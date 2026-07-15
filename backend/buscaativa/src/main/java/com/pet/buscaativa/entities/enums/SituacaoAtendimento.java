@@ -1,23 +1,20 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum SituacaoAtendimento {
-    
+
     PRESENTE(1),
     AGENDADO(2),
     FALTOU(3),
     REMARCADO(4),
     CANCELADO(5),
     REMARCADO_ORIGEM(6);
-    
+
     private int codigo;
 
     SituacaoAtendimento(int codigo) {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

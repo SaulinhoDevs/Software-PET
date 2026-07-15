@@ -2,42 +2,44 @@ package com.pet.buscaativa.entities.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
-import com.pet.buscaativa.entities.Paciente;
-import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
+import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record AgendamentoDTO(
 
-    Long id,
+        Long id,
 
-    @NotBlank
-    @NotNull
-    Long usuarioId,
+        @NotNull(message = "Selecione o profissional.")
+        UUID usuarioId,
 
-    @NotBlank
-    @NotNull
-    Long pacienteId,
+        String nomeProfissional,
 
-    @NotBlank
-    @NotNull(message = "Defina uma data para o Atendimento.")
-    LocalDate dataAgendamento,
+        @NotNull(message = "Selecione o paciente.")
+        UUID pacienteId,
 
-    @NotBlank
-    @NotNull(message = "Defina o turno do Atendimento.")
-    TurnoEnum turnoAgendamento,
+        String nomePaciente,
 
-    @NotBlank
-    @NotNull(message = "Defina a hora do Atendimento.")
-    LocalTime horaAtendimento,
+        TipoAcompanhamento tipoAcompanhamento,
 
-    SituacaoAtendimento situacaoAtendimento,
+        @NotNull(message = "Defina uma data para o Atendimento.")
+        LocalDate dataAgendamento,
 
-    Integer version
+        @NotNull(message = "Defina o turno do Atendimento.")
+        TurnoEnum turnoAgendamento,
+
+        @NotNull(message = "Defina a hora do Atendimento.")
+        LocalTime horaAtendimento,
+
+        SituacaoAtendimento situacaoAtendimento,
+
+        Long agendamentoOriginalId,
+
+        Integer version
 ) {
-    
+
 }

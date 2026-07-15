@@ -1,9 +1,7 @@
 package com.pet.buscaativa.entities.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum TurnoEnum {
-    
+
     MANHA(1),
     TARDE(2);
 
@@ -13,7 +11,6 @@ public enum TurnoEnum {
         this.codigo = codigo;
     }
 
-    @JsonValue
     public int getCodigo() {
         return codigo;
     }

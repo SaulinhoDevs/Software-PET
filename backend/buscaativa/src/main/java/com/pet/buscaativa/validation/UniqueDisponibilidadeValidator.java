@@ -1,6 +1,7 @@
 package com.pet.buscaativa.validation;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
@@ -29,25 +30,22 @@ public class UniqueDisponibilidadeValidator implements ConstraintValidator<Uniqu
 
     @Override
     public boolean isValid(DisponibilidadeDTO dto, ConstraintValidatorContext context) {
-
         if (dto == null) return true;
 
-        Long usuarioId = dto.usuarioId();
+        UUID usuarioId = dto.usuarioId();
         if (usuarioId == null) {
             // Não temos info de usuário no DTO — validação será feita no service onde se conhece o usuário logado.
             return true;
         }
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByIdPublico(usuarioId);
         if (usuarioOpt.isEmpty()) {
             // Se usuário não existe, validador deixa passar; outra validação (service/controller) tratará usuário inválido.
             return true;
         }
 
         Usuario usuario = usuarioOpt.get();
-
         Optional<Disponibilidade> existente = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, dto.diaSemana(), dto.turno());
-
         if (existente.isPresent()) {
             // se for o mesmo registro (atualização), é válido
             Disponibilidade d = existente.get();

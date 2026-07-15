@@ -1,19 +1,21 @@
 package com.pet.buscaativa.entities.dto;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
 
 public record BloqueioAgendaDTO(
         Long id,
 
-        Long usuarioId,
+        UUID usuarioId,
 
-        @NotNull 
+        @NotNull
         LocalDate dataInicio,
 
-        @NotNull 
+        @NotNull
         LocalDate dataFim,
 
         String motivoBloqueio
-) {}
+) {
+}

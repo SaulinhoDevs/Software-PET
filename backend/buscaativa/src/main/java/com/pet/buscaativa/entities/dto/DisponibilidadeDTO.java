@@ -1,6 +1,7 @@
 package com.pet.buscaativa.entities.dto;
 
 import java.time.DayOfWeek;
+import java.util.UUID;
 
 import com.pet.buscaativa.entities.enums.TurnoEnum;
 import com.pet.buscaativa.validation.UniqueDisponibilidade;
@@ -12,17 +13,17 @@ public record DisponibilidadeDTO(
 
         Long id,
 
-        Long usuarioId,
+        UUID usuarioId,
 
-        @NotNull 
+        @NotNull
         DayOfWeek diaSemana,
 
-        @NotNull 
+        @NotNull
         TurnoEnum turno,
 
-        @NotNull 
+        @NotNull
         Integer capacidade
-        
+
 ) {
 
 }

@@ -8,29 +8,29 @@ import org.springframework.stereotype.Service;
 import com.pet.buscaativa.entities.Disponibilidade;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.DisponibilidadeDTO;
-import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.repositories.DisponibilidadeRepository;
-import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.DisponibilidadeService;
 import com.pet.buscaativa.services.exceptions.RecursoDuplicadoException;
+import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class DisponibilidadeServiceImpl implements DisponibilidadeService{
+public class DisponibilidadeServiceImpl implements DisponibilidadeService {
 
     private final DisponibilidadeRepository disponibilidadeRepository;
-    private final UsuarioRepository usuarioRepository;
     private final UsuarioContextService usuarioContextService;
 
     @Override
     public DisponibilidadeDTO save(DisponibilidadeDTO disponibilidadeDTO, String emailLogado) {
         Usuario usuario = usuarioContextService.determinarUsuarioAlvo(disponibilidadeDTO.usuarioId(), emailLogado);
 
-        // Validação de duplicidade
-        Optional<Disponibilidade> checarDisponibilidade = disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, disponibilidadeDTO.diaSemana(), disponibilidadeDTO.turno());
+        Optional<Disponibilidade> checarDisponibilidade = disponibilidadeRepository
+                .findByUsuarioAndDiaDaSemanaAndTurno(usuario, disponibilidadeDTO.diaSemana(), disponibilidadeDTO.turno());
+
         if (checarDisponibilidade.isPresent()) {
             Disponibilidade existente = checarDisponibilidade.get();
             if (disponibilidadeDTO.id() == null || !existente.getId().equals(disponibilidadeDTO.id())) {
@@ -38,26 +38,28 @@ public class DisponibilidadeServiceImpl implements DisponibilidadeService{
             }
         }
 
-
         Disponibilidade disponibilidade = new Disponibilidade();
         if (disponibilidadeDTO.id() != null) {
-            disponibilidade = disponibilidadeRepository.findById(disponibilidadeDTO.id()).orElseThrow();
+            disponibilidade = disponibilidadeRepository.findById(disponibilidadeDTO.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Disponibilidade não encontrada."));
         }
+
         disponibilidade.setUsuario(usuario);
         disponibilidade.setDiaDaSemana(disponibilidadeDTO.diaSemana());
         disponibilidade.setTurno(disponibilidadeDTO.turno());
         disponibilidade.setCapacidade(disponibilidadeDTO.capacidade());
 
         disponibilidade = disponibilidadeRepository.save(disponibilidade);
-        return new DisponibilidadeDTO(disponibilidade.getId(), usuario.getId(), disponibilidade.getDiaDaSemana(), disponibilidade.getTurno(), disponibilidade.getCapacidade());
+
+        return toDTO(disponibilidade);
     }
 
     @Override
-    public List<DisponibilidadeDTO> listarDisponibilidades(String emailLogado, Long usuarioId) {
-        Usuario usuarioAlvo = usuarioContextService.determinarUsuarioAlvo(usuarioId, emailLogado);
-        
+    public List<DisponibilidadeDTO> listarDisponibilidades(String emailLogado, UUID usuarioIdPublico) {
+        Usuario usuarioAlvo = usuarioContextService.determinarUsuarioAlvo(usuarioIdPublico, emailLogado);
+
         return disponibilidadeRepository.findByUsuario(usuarioAlvo).stream()
-                .map(d -> new DisponibilidadeDTO(d.getId(), d.getUsuario().getId(), d.getDiaDaSemana(), d.getTurno(), d.getCapacidade()))
+                .map(this::toDTO)
                 .toList();
     }
 
@@ -66,5 +68,13 @@ public class DisponibilidadeServiceImpl implements DisponibilidadeService{
         disponibilidadeRepository.deleteById(id);
     }
 
-
+    private DisponibilidadeDTO toDTO(Disponibilidade d) {
+        return new DisponibilidadeDTO(
+                d.getId(),
+                d.getUsuario().getIdPublico(),
+                d.getDiaDaSemana(),
+                d.getTurno(),
+                d.getCapacidade()
+        );
+    }
 }

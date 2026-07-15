@@ -68,4 +68,12 @@ public class ResourceExceptionHandler {
 
         return ResponseEntity.status(status).body(verr);
     }
+
+    @ExceptionHandler(jakarta.persistence.OptimisticLockException.class)
+    public ResponseEntity<StandardError> optimisticLock(jakarta.persistence.OptimisticLockException e, HttpServletRequest request) {
+        String error = "Conflito de atualização.";
+        HttpStatus status = HttpStatus.CONFLICT;
+        StandardError sterr = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(sterr);
+    }
 }

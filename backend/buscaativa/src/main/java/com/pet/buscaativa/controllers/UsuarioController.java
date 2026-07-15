@@ -42,7 +42,7 @@ public class UsuarioController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
-    public ResponseEntity<UsuarioDTO> insert(@Valid @RequestBody UsuarioDTO usuarioDTO){
+    public ResponseEntity<UsuarioDTO> insert(@Valid @RequestBody UsuarioDTO usuarioDTO) {
         UsuarioDTO novoUsuario = usuarioService.save(usuarioDTO);
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(novoUsuario.idPublico()).toUri();
@@ -53,18 +53,32 @@ public class UsuarioController {
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{idPublico}")
-    public ResponseEntity<UsuarioDTO> update(@PathVariable UUID idPublico, @Valid @RequestBody UsuarioDTO usuarioDTO){
+    public ResponseEntity<UsuarioDTO> update(@PathVariable UUID idPublico, @Valid @RequestBody UsuarioDTO usuarioDTO) {
         UsuarioDTO usuarioAtualizar = new UsuarioDTO
-        (idPublico, usuarioDTO.nome(), usuarioDTO.email(), usuarioDTO.tipoUsuario(), usuarioDTO.unidadeAtuacao(), usuarioDTO.senha());
+                (idPublico, usuarioDTO.nome(), usuarioDTO.email(), usuarioDTO.tipoUsuario(), usuarioDTO.unidadeAtuacao(), usuarioDTO.senha());
 
         return ResponseEntity.ok(usuarioService.save(usuarioAtualizar));
     }
 
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping("/{idPublico}")
-    public ResponseEntity<Void> delete (@PathVariable UUID idPublico){
+    public ResponseEntity<Void> delete(@PathVariable UUID idPublico) {
         usuarioService.removerUsuario(idPublico);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioDTO> me() {
+        String emailLogado = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        UsuarioDTO usuario = usuarioService.findByEmail(emailLogado);
+
+        if (usuario == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(usuario);
     }
 }
