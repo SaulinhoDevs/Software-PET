@@ -15,6 +15,8 @@ public interface PacienteMapper {
     @Mapping(target = "countFaltas", source = "countFaltas", defaultValue = "0")
     public Paciente toPacienteEntity(PacienteDTO pacienteDTO);
 
-    @Mapping(target = "countFaltas", source = "countFaltas", defaultExpression = "java(pacienteEntity.getCountFaltas())")
+    @Mapping(target = "idPublico", ignore = true)
+    @Mapping(target = "countFaltas", ignore = true)
+    @Mapping(target = "statusPaciente", ignore = true)
     void updatePacienteFromDTO(PacienteDTO pacienteDTO, @MappingTarget Paciente pacienteEntity);
 }
