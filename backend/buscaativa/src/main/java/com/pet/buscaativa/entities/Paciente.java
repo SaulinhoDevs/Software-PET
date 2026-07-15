@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.hibernate.envers.Audited;
 
+import com.pet.buscaativa.entities.enums.CapsEnum;
 import com.pet.buscaativa.entities.enums.SexoEnum;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
 import com.pet.buscaativa.entities.enums.RacaCorEnum;
@@ -79,6 +80,9 @@ public class Paciente extends AbstractEntities implements Serializable{
     @ManyToOne
     @JoinColumn(name = "usf_cnes")
     private UsfReferencia usfReferencia;
+
+    @Convert(converter = CapsEnumConverter.class)
+    private CapsEnum capsReferencia;
 
     @Override
     public boolean equals(Object o) {

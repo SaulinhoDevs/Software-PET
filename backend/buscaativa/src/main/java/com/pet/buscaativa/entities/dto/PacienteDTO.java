@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.br.CPF;
 import com.pet.buscaativa.entities.Endereco;
 import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.UsfReferencia;
+import com.pet.buscaativa.entities.enums.CapsEnum;
 import com.pet.buscaativa.entities.enums.RacaCorEnum;
 import com.pet.buscaativa.entities.enums.SexoEnum;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
@@ -67,7 +68,10 @@ public record PacienteDTO(
         StatusPaciente statusPaciente,
 
         @NotNull(message = "Informe a USF de Referência do Paciente.")
-        UsfReferencia usfReferencia
+        UsfReferencia usfReferencia,
+
+        @NotNull(message = "Informe o CAPS de Referência do Paciente.")
+        CapsEnum capsReferencia
 
 ) {
     public PacienteDTO(Paciente entity) {
@@ -87,7 +91,8 @@ public record PacienteDTO(
                 entity.getTipoAcompanhamento(),
                 entity.getCountFaltas(),
                 entity.getStatusPaciente(),
-                entity.getUsfReferencia()
+                entity.getUsfReferencia(),
+                entity.getCapsReferencia()
         );
     }
 

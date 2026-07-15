@@ -75,7 +75,7 @@ public class PacienteController {
             PacienteDTO pacienteAtualizar = new PacienteDTO(idPublico, pacienteDTO.nome(), pacienteDTO.nomeMae(), pacienteDTO.dataNascimento(), pacienteDTO.dataUltimaPresenca(),
                 pacienteDTO.sexo(), pacienteDTO.racacor(), pacienteDTO.cns(), pacienteDTO.cpf(), pacienteDTO.telefone(), pacienteDTO.endereco(),
                 pacienteDTO.situacaoRua(), pacienteDTO.tipoAcompanhamento(), pacienteDTO.countFaltas(), pacienteDTO.statusPaciente(),
-                pacienteDTO.usfReferencia());
+                pacienteDTO.usfReferencia(), pacienteDTO.capsReferencia());
 
                 return ResponseEntity.ok(pacienteService.save(pacienteAtualizar, ignorarSimilaridade));
         }
