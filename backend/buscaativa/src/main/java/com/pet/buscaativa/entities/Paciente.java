@@ -8,9 +8,10 @@ import java.util.UUID;
 import org.hibernate.envers.Audited;
 
 import com.pet.buscaativa.entities.enums.CapsEnum;
+import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
+import com.pet.buscaativa.entities.enums.RacaCorEnum;
 import com.pet.buscaativa.entities.enums.SexoEnum;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
-import com.pet.buscaativa.entities.enums.RacaCorEnum;
 import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 
 import jakarta.persistence.CascadeType;
@@ -23,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -83,6 +85,20 @@ public class Paciente extends AbstractEntities implements Serializable{
 
     @Convert(converter = CapsEnumConverter.class)
     private CapsEnum capsReferencia;
+
+    @Version
+    private Integer version;
+
+    @Convert(converter = ClassificacaoRiscoConverter.class)
+    private ClassificacaoRisco classificacaoRisco = ClassificacaoRisco.VERDE;
+
+    private LocalDate dataEncerramento;
+    private String motivoEncerramento;
+    private String descricaoMotivoEncerramento;
+    private String profissionalEncerramento;
+
+    private LocalDate dataReativacao;
+    private String motivoReativacao;
 
     @Override
     public boolean equals(Object o) {

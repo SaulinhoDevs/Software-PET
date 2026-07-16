@@ -309,4 +309,20 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         return agendamentoMapper.toAgendamentoDTO(agendamento);
     }
+
+    @Override
+    public void atualizarAssiduidadePaciente(Paciente paciente, SituacaoAtendimento statusAnterior, SituacaoAtendimento novoStatus) {
+        if (novoStatus == SituacaoAtendimento.FALTOU && statusAnterior != SituacaoAtendimento.FALTOU) {
+            paciente.setCountFaltas(paciente.getCountFaltas() + 1);
+        }
+
+        if (novoStatus == SituacaoAtendimento.PRESENTE) {
+            paciente.setCountFaltas(0);
+            paciente.setDataUltimaPresenca(LocalDate.now());
+        }
+
+        if (statusAnterior == SituacaoAtendimento.FALTOU && novoStatus != SituacaoAtendimento.FALTOU) {
+            paciente.setCountFaltas(Math.max(0, paciente.getCountFaltas() - 1));
+        }
+    }
 }
