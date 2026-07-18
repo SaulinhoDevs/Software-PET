@@ -100,6 +100,9 @@ public class Paciente extends AbstractEntities implements Serializable{
     private LocalDate dataReativacao;
     private String motivoReativacao;
 
+    @Column(name = "gatilho_visita")
+    private Boolean gatilhoVisitaAcionado = false;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

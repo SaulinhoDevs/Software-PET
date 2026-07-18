@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.pet.buscaativa.entities.enums.StatusPaciente;
+
 
 
 @Repository
@@ -29,4 +31,6 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long>{
 
     List<Paciente> findByNomeIgnoreCaseAndNomeMaeIgnoreCaseAndDataNascimento(
     String nome, String nomeMae, LocalDate dataNascimento);
+
+    List<Paciente> findByStatusPaciente(StatusPaciente statusPaciente);
 }

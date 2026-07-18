@@ -12,7 +12,7 @@ import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.repositories.UsuarioRepository;
 
 @SpringBootApplication
-@EnableScheduling //Necessário para atualização da lista de Unidades do BD
+@EnableScheduling //Necessário para atualização da lista de Unidades do BD e MotorBuscaAtiva
 public class BuscaativaApplication {
 
 	public static void main(String[] args) {

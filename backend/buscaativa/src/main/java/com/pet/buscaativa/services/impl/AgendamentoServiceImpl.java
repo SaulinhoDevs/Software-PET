@@ -30,6 +30,7 @@ import com.pet.buscaativa.repositories.DisponibilidadeRepository;
 import com.pet.buscaativa.repositories.PacienteRepository;
 import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.AgendamentoService;
+import com.pet.buscaativa.services.PacienteService;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 import com.pet.buscaativa.services.exceptions.ValidationException;
 
@@ -48,6 +49,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final PacienteRepository pacienteRepository;
 
     private final AgendamentoMapper agendamentoMapper;
+
+    private final PacienteService pacienteService;
 
     @Override
     public AgendamentoDTO save(AgendamentoDTO agendamentoDTO) {
@@ -278,10 +281,10 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     @Override
     @Transactional
     public AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus, Integer expectedVersion) {
-        Agendamento agendamento = agendamentoRepository.findById(id)
+       Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado para o id"));
 
-        LocalDate dataAgendamento = agendamento.getDataAgendamento();
+                LocalDate dataAgendamento = agendamento.getDataAgendamento();
         if (dataAgendamento != null && dataAgendamento.isAfter(LocalDate.now())) {
             throw new ValidationException(
                     "Não é permitido registrar presença ou falta para agendamentos com data futura.");
@@ -292,17 +295,27 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                     "O agendamento foi alterado por outro usuário. Atualize a agenda antes de tentar novamente.");
         }
 
+        SituacaoAtendimento statusAnterior = agendamento.getSituacaoAtendimento();
+        
+        if (statusAnterior == novoStatus) {
+            return agendamentoMapper.toAgendamentoDTO(agendamento);
+        }
+
         agendamento.setSituacaoAtendimento(novoStatus);
 
         Paciente paciente = agendamento.getPaciente();
         if (paciente != null) {
-            if (novoStatus == SituacaoAtendimento.FALTOU) {
-                paciente.setCountFaltas(paciente.getCountFaltas() + 1);
-            } else if (novoStatus == SituacaoAtendimento.PRESENTE) {
-                paciente.setCountFaltas(0);
-                paciente.setDataUltimaPresenca(LocalDate.now());
+    
+            pacienteService.atualizarAssiduidadePaciente(paciente, statusAnterior, novoStatus);
+
+            // 6. RF08: Gatilho de Visita Domiciliar Automático
+            // Se o status virou FALTOU e este agendamento é uma remarcação (tem um original vinculado):
+            if (novoStatus == SituacaoAtendimento.FALTOU && agendamento.getAgendamentoOriginal() != null) {
+                paciente.setGatilhoVisitaAcionado(true);
             }
-            pacienteRepository.save(paciente);
+
+            // O Paciente já será salvo automaticamente ao final do método por causa do @Transactional,
+            // mas manter o save explícito não causa problemas se preferir.
         }
 
         agendamento = agendamentoRepository.save(agendamento);
@@ -310,19 +323,4 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         return agendamentoMapper.toAgendamentoDTO(agendamento);
     }
 
-    @Override
-    public void atualizarAssiduidadePaciente(Paciente paciente, SituacaoAtendimento statusAnterior, SituacaoAtendimento novoStatus) {
-        if (novoStatus == SituacaoAtendimento.FALTOU && statusAnterior != SituacaoAtendimento.FALTOU) {
-            paciente.setCountFaltas(paciente.getCountFaltas() + 1);
-        }
-
-        if (novoStatus == SituacaoAtendimento.PRESENTE) {
-            paciente.setCountFaltas(0);
-            paciente.setDataUltimaPresenca(LocalDate.now());
-        }
-
-        if (statusAnterior == SituacaoAtendimento.FALTOU && novoStatus != SituacaoAtendimento.FALTOU) {
-            paciente.setCountFaltas(Math.max(0, paciente.getCountFaltas() - 1));
-        }
-    }
 }

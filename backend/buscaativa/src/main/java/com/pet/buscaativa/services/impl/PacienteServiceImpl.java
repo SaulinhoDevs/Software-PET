@@ -1,8 +1,17 @@
 package com.pet.buscaativa.services.impl;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.dto.PacienteDTO;
+import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
+import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
+import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 import com.pet.buscaativa.mapping.PacienteMapper;
 import com.pet.buscaativa.repositories.PacienteRepository;
 import com.pet.buscaativa.services.PacienteService;
@@ -12,11 +21,6 @@ import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 import com.pet.buscaativa.utils.DocumentoUtil;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -152,6 +156,57 @@ public class PacienteServiceImpl implements PacienteService{
         }
 
         return pacienteMapper.toPacienteDTO(paciente);
+    }
+
+    @Override
+    public void atualizarAssiduidadePaciente(Paciente paciente, SituacaoAtendimento statusAnterior, SituacaoAtendimento novoStatus) {
+        if (novoStatus == SituacaoAtendimento.FALTOU && statusAnterior != SituacaoAtendimento.FALTOU) {
+            paciente.setCountFaltas(paciente.getCountFaltas() + 1);
+        }
+        if (novoStatus == SituacaoAtendimento.PRESENTE) {
+            paciente.setCountFaltas(0);
+            paciente.setDataUltimaPresenca(LocalDate.now());
+            paciente.setGatilhoVisitaAcionado(false);
+        }
+        if (statusAnterior == SituacaoAtendimento.FALTOU && novoStatus != SituacaoAtendimento.FALTOU) {
+            paciente.setCountFaltas(Math.max(0, paciente.getCountFaltas() - 1));
+        }
+
+        calcularEAtualizarRisco(paciente);
+    }
+    @Override
+    public void calcularEAtualizarRisco(Paciente paciente) {
+        if(paciente.getStatusPaciente() == StatusPaciente.INATIVO){
+            paciente.setClassificacaoRisco(ClassificacaoRisco.VERDE);
+            return;
+        }
+
+        //Definiçao dos limites padronizados de dias para Vermelho e Amarelo
+        //Se o TipoAcompanhamento for Grupo terapeutico o amarelo recebe = 15, se for individual recebe 60
+        //Se o TipoAcompanhamento for Grupo terapeutico o vermelho recebe = 30, se for individual recebe 120
+        int limiteAmareloDias = paciente.getTipoAcompanhamento() == TipoAcompanhamento.GRUPO_TERAPEUTICO ? 15 : 60;
+        int limiteVermelhoDias = paciente.getTipoAcompanhamento() == TipoAcompanhamento.GRUPO_TERAPEUTICO ? 30 : 120;
+        int limiteAmareloFaltas = 2;
+        int limiteVermelhoFaltas = 3;
+
+        long diasAusente = 0;
+
+        if (paciente.getDataUltimaPresenca() != null) {
+            diasAusente = java.time.temporal.ChronoUnit.DAYS.between(paciente.getDataUltimaPresenca(), LocalDate.now());
+        }
+
+        // Verifica primeiro o risco máximo (Vermelho)
+        if (paciente.getCountFaltas() >= limiteVermelhoFaltas || diasAusente >= limiteVermelhoDias) {
+            paciente.setClassificacaoRisco(ClassificacaoRisco.VERMELHO);
+        } 
+        // Depois o risco médio (Amarelo)
+        else if (paciente.getCountFaltas() >= limiteAmareloFaltas || diasAusente >= limiteAmareloDias) {
+            paciente.setClassificacaoRisco(ClassificacaoRisco.AMARELO);
+        } 
+        // Caso contrário, está tudo bem (Verde)
+        else {
+            paciente.setClassificacaoRisco(ClassificacaoRisco.VERDE);
+        }
     }
 
     

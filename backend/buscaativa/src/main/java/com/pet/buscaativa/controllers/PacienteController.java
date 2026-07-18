@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -87,5 +88,23 @@ public class PacienteController {
         pacienteService.inativarPaciente(idPublico);
         return ResponseEntity.noContent().build();
 
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @PatchMapping("/{idPublico}/encerrar-acompanhamento")
+    public ResponseEntity<Void> encerrarAcompanhamento(
+            @PathVariable UUID idPublico, 
+            @RequestParam String motivoEncerramento, 
+            @RequestParam(required = false) String descricaoMotivoEncerramento) {
+        
+        pacienteService.encerrarAcompanhamento(idPublico, motivoEncerramento, descricaoMotivoEncerramento);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PatchMapping("/{idPublico}/reativar")
+    public ResponseEntity<Void> reativarAcompanhamento(@PathVariable UUID idPublico) {
+        pacienteService.reativarAcompanhamento(idPublico);
+        return ResponseEntity.noContent().build();
     }
 }
