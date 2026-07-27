@@ -38,7 +38,7 @@ public class BloqueioAgendaController {
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarBloqueio(@PathVariable Long id) {
-        bloqueioAgendaService.deletarBloqueio(id);
+        bloqueioAgendaService.deletarBloqueio(id, getEmailLogado());
         return ResponseEntity.noContent().build();
     }
 }

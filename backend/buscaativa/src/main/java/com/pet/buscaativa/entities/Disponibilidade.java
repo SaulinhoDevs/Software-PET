@@ -53,5 +53,6 @@ public class Disponibilidade extends AbstractEntities implements Serializable{
     @Convert(converter = TurnoEnumConverter.class)
     private TurnoEnum turno;
 
+    @Column(nullable = false)
     private Integer capacidade;
 }

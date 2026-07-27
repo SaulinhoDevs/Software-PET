@@ -20,6 +20,7 @@ import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
+import com.pet.buscaativa.entities.enums.StatusPaciente;
 import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 import com.pet.buscaativa.entities.enums.TipoUsuario;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
@@ -32,6 +33,7 @@ import com.pet.buscaativa.repositories.UsuarioRepository;
 import com.pet.buscaativa.services.AgendamentoService;
 import com.pet.buscaativa.services.HistoricoPacienteService;
 import com.pet.buscaativa.services.PacienteService;
+import com.pet.buscaativa.services.exceptions.ConflictException;
 import com.pet.buscaativa.services.exceptions.ResourceNotFoundException;
 import com.pet.buscaativa.services.exceptions.ValidationException;
 
@@ -59,9 +61,33 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     public AgendamentoDTO save(AgendamentoDTO agendamentoDTO) {
         Usuario usuario = usuarioRepository.findByIdPublico(agendamentoDTO.usuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        
+        if (usuario.getTipoUsuario() != TipoUsuario.PROFISSIONAL) {
+            throw new ValidationException("O usuário selecionado não é um profissional habilitado para atendimento.");
+        }
 
         Paciente paciente = pacienteRepository.findByIdPublico(agendamentoDTO.pacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+
+        if (paciente.getStatusPaciente() != StatusPaciente.ATIVO) {
+            throw new ValidationException("Somente pacientes ativos podem ser agendados.");
+        }
+        if (agendamentoDTO.dataAgendamento().isBefore(LocalDate.now())) {
+            throw new ValidationException("Não é permitido criar agendamento em data passada.");
+        }
+        Disponibilidade disponibilidade = disponibilidadeRepository
+                .findByUsuarioAndDiaDaSemanaAndTurno(usuario, agendamentoDTO.dataAgendamento().getDayOfWeek(),
+                        agendamentoDTO.turnoAgendamento())
+                .orElseThrow(() -> new ConflictException("Não existe disponibilidade para a data e turno informados."));
+        if (bloqueioAgendaRepository.isDataBloqueadaParaUsuario(usuario, agendamentoDTO.dataAgendamento())) {
+            throw new ConflictException("A agenda do profissional está bloqueada na data informada.");
+        }
+        int ocupadas = agendamentoRepository.contarVagasOcupadasBySituacoes(usuario, agendamentoDTO.dataAgendamento(),
+                agendamentoDTO.turnoAgendamento(), List.of(SituacaoAtendimento.AGENDADO,
+                        SituacaoAtendimento.REMARCADO, SituacaoAtendimento.PRESENTE));
+        if (ocupadas >= disponibilidade.getCapacidade()) {
+            throw new ConflictException("Não há vagas disponíveis para a data e turno informados.");
+        }
 
         Agendamento agendamento = new Agendamento();
         agendamento.setUsuario(usuario);
@@ -70,9 +96,17 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         agendamento.setTurnoAgendamento(agendamentoDTO.turnoAgendamento());
         agendamento.setHoraAtendimento(agendamentoDTO.horaAtendimento());
 
-        if (agendamentoDTO.id() != null) {
-            var original = agendamentoRepository.findById(agendamentoDTO.id())
+        if (agendamentoDTO.agendamentoOriginalId() != null) {
+            var original = agendamentoRepository.findById(agendamentoDTO.agendamentoOriginalId())
                     .orElseThrow(() -> new ResourceNotFoundException("Agendamento original não encontrado"));
+            
+            if (agendamentoDTO.id() != null && agendamentoDTO.id().equals(agendamentoDTO.agendamentoOriginalId())) {
+                throw new ValidationException("Um agendamento não pode ser vinculado a ele mesmo.");
+            }
+            if (!List.of(SituacaoAtendimento.AGENDADO, SituacaoAtendimento.REMARCADO)
+                    .contains(original.getSituacaoAtendimento())) {
+                throw new ConflictException("O agendamento original não está em situação compatível com remarcação.");
+            }
 
             if (paciente.getTipoAcompanhamento() == TipoAcompanhamento.GRUPO_TERAPEUTICO) {
                 throw new ValidationException(
@@ -315,7 +349,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
             Paciente paciente = pacienteRepository.findByIdPublicoForUpdate(pacienteAgendado.getIdPublico())
                     .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
-            pacienteService.atualizarAssiduidadePaciente(paciente, statusAnterior, novoStatus);
+            pacienteService.atualizarAssiduidadePaciente(paciente, statusAnterior, novoStatus,
+                    agendamento.getDataAgendamento());
 
             // 6. RF08: Gatilho de Visita Domiciliar Automático
             // Se o status virou FALTOU e este agendamento é uma remarcação (tem um original vinculado):
