@@ -198,6 +198,13 @@
   padding: 10px;
 }
 
+.hint-horario {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 6px;
+  display: block;
+}
+
 .erro-campo {
   color: #dc2626;
   font-size: 12px;

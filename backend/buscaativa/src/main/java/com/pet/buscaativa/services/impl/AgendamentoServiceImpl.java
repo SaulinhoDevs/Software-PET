@@ -2,6 +2,7 @@ package com.pet.buscaativa.services.impl;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +60,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final PacienteService pacienteService;
     private final HistoricoPacienteService historicoPacienteService;
 
+    private static final LocalTime MANHA_INICIO = LocalTime.of(7, 0);
+    private static final LocalTime MANHA_FIM = LocalTime.of(12, 0);
+    private static final LocalTime TARDE_INICIO = LocalTime.of(13, 0);
+    private static final LocalTime TARDE_FIM = LocalTime.of(18, 0);
+
     @Override
     @Transactional
     public AgendamentoDTO save(AgendamentoDTO agendamentoDTO) {
@@ -78,6 +84,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (agendamentoDTO.dataAgendamento().isBefore(LocalDate.now())) {
             throw new ValidationException("Não é permitido criar agendamento em data passada.");
         }
+
+        validarHorarioDentroDoTurno(agendamentoDTO.turnoAgendamento(), agendamentoDTO.horaAtendimento());
 
         if (bloqueioAgendaRepository.isDataBloqueadaParaUsuario(usuario, agendamentoDTO.dataAgendamento())) {
             throw new ConflictException("A agenda do profissional está bloqueada na data informada.");
@@ -209,6 +217,15 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 disponibilidadeRepository.findByUsuarioAndDiaDaSemanaAndTurno(usuario, diaSemana, turno);
 
         return padrao.map(Disponibilidade::getCapacidade).orElse(null);
+    }
+
+    private void validarHorarioDentroDoTurno(TurnoEnum turno, LocalTime hora) {
+        if (turno == TurnoEnum.MANHA && (hora.isBefore(MANHA_INICIO) || hora.isAfter(MANHA_FIM))) {
+            throw new ValidationException("O horário do turno da manhã deve estar entre 07:00 e 12:00.");
+        }
+        if (turno == TurnoEnum.TARDE && (hora.isBefore(TARDE_INICIO) || hora.isAfter(TARDE_FIM))) {
+            throw new ValidationException("O horário do turno da tarde deve estar entre 13:00 e 18:00.");
+        }
     }
 
     @Override

@@ -83,8 +83,19 @@
     <h2 class="detail-card-title">3. Horário</h2>
 
     <div class="form-inline">
-      <input type="time" [(ngModel)]="horaAtendimento" />
+      <input type="time" [(ngModel)]="horaAtendimento" (change)="onHoraAlterada()"
+        [min]="turnoSelecionado === 'MANHA' ? '07:00' : '13:00'"
+        [max]="turnoSelecionado === 'MANHA' ? '12:00' : '18:00'" />
     </div>
+
+    <small class="hint-horario" *ngIf="!erroHorario">
+      Horário permitido: {{ turnoSelecionado === 'MANHA' ? '07:00 às 12:00' : '13:00 às 18:00' }}
+    </small>
+
+    <small *ngIf="erroHorario" class="erro-campo">
+      {{ erroHorario }}
+    </small>
+
     <small *ngIf="errosPorCampo['horaAtendimento']" class="erro-campo">
       {{ errosPorCampo['horaAtendimento'] }}
     </small>

@@ -17,6 +17,12 @@ import {
   VagasPorTurno,
 } from '../../services/agendamento-service';
 
+// Faixas de horário permitidas por turno.
+const FAIXAS_TURNO: Record<string, { inicio: string; fim: string }> = {
+  MANHA: { inicio: '07:00', fim: '12:00' },
+  TARDE: { inicio: '13:00', fim: '18:00' },
+};
+
 @Component({
   selector: 'app-novo-agendamento',
   standalone: true,
@@ -43,6 +49,7 @@ export class NovoAgendamento implements OnInit {
 
   // Passo 4: horário
   horaAtendimento = '';
+  erroHorario: string | null = null;
 
   salvando = false;
   erroGeral: string | null = null;
@@ -107,6 +114,8 @@ export class NovoAgendamento implements OnInit {
   onProfissionalOuDataAlterado(): void {
     this.vagas = null;
     this.turnoSelecionado = null;
+    this.horaAtendimento = '';
+    this.erroHorario = null;
     this.erroGeral = null;
 
     if (!this.profissionalSelecionadoId || !this.dataSelecionada) {
@@ -133,11 +142,30 @@ export class NovoAgendamento implements OnInit {
   selecionarTurno(turno: string): void {
     if (this.vagasDoTurno(turno) <= 0) return;
     this.turnoSelecionado = turno;
+    this.horaAtendimento = '';
+    this.erroHorario = null;
   }
 
   vagasDoTurno(turno: string): number {
     if (!this.vagas) return 0;
     return turno === 'MANHA' ? this.vagas.MANHA : this.vagas.TARDE;
+  }
+
+  // Chamado no (change) do input de horário.
+  onHoraAlterada(): void {
+    this.erroHorario = null;
+
+    if (!this.horaAtendimento || !this.turnoSelecionado) {
+      return;
+    }
+
+    const faixa = FAIXAS_TURNO[this.turnoSelecionado];
+    if (!faixa) return;
+
+    if (this.horaAtendimento < faixa.inicio || this.horaAtendimento > faixa.fim) {
+      const labelTurno = this.turnoSelecionado === 'MANHA' ? 'manhã' : 'tarde';
+      this.erroHorario = `O horário do turno da ${labelTurno} deve estar entre ${faixa.inicio} e ${faixa.fim}.`;
+    }
   }
 
   get podeConfirmar(): boolean {
@@ -147,6 +175,7 @@ export class NovoAgendamento implements OnInit {
       this.dataSelecionada &&
       this.turnoSelecionado &&
       this.horaAtendimento &&
+      !this.erroHorario &&
       !this.salvando
     );
   }
