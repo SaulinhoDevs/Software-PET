@@ -24,6 +24,7 @@ export interface NovoAgendamentoPayload {
   dataAgendamento: string;
   turnoAgendamento: string;
   horaAtendimento: string;
+  agendamentoOriginalId?: number;
 }
 
 export interface VagasPorTurno {
@@ -64,6 +65,22 @@ export class AgendamentoService {
     return this.http.get<AgendamentoDTO[]>(`${this.apiUrl}/agenda/${data}`, { params });
   }
 
+  buscarAgendaPorPeriodo(dataInicio: string, dataFim: string, profissionalId?: string): Observable<AgendamentoDTO[]> {
+    let params = new HttpParams().set('dataInicio', dataInicio).set('dataFim', dataFim);
+    if (profissionalId) {
+      params = params.set('profissionalId', profissionalId);
+    }
+    return this.http.get<AgendamentoDTO[]>(`${this.apiUrl}/agenda`, { params });
+  }
+
+  buscarPorId(id: number): Observable<AgendamentoDTO> {
+    return this.http.get<AgendamentoDTO>(`${this.apiUrl}/${id}`);
+  }
+
+  sugerirDatasRemarcacao(id: number): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/${id}/remarcacao`);
+  }
+  
   atualizarStatus(id: number, novoStatus: string, version: number): Observable<AgendamentoDTO> {
     const params = new HttpParams().set('novoStatus', novoStatus).set('version', String(version));
 

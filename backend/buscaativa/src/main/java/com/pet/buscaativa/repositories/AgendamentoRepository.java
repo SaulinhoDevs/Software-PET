@@ -17,7 +17,15 @@ import com.pet.buscaativa.entities.enums.TurnoEnum;
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
-    List<Agendamento> findByDataAgendamento(LocalDate dataAgendamento);
+    @Query("SELECT a FROM Agendamento a JOIN FETCH a.usuario JOIN FETCH a.paciente WHERE a.id = :id")
+    java.util.Optional<Agendamento> findByIdWithUsuarioAndPaciente(@Param("id") Long id);
+
+    @Query("SELECT a FROM Agendamento a JOIN FETCH a.usuario JOIN FETCH a.paciente WHERE a.dataAgendamento = :dataAgendamento ORDER BY a.dataAgendamento, a.turnoAgendamento, a.horaAtendimento, a.id")
+    List<Agendamento> findByDataAgendamento(@Param("dataAgendamento") LocalDate dataAgendamento);
+
+    long countByDataAgendamentoAndSituacaoAtendimento(LocalDate dataAgendamento, SituacaoAtendimento situacaoAtendimento);
+
+    long countBySituacaoAtendimentoAndDataAgendamentoBetween(SituacaoAtendimento situacaoAtendimento, LocalDate inicio, LocalDate fim);
 
     List<Agendamento> findByPacienteOrderByDataAgendamentoDescIdDesc(Paciente paciente);
 
@@ -35,7 +43,14 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
                             @Param("situacao") SituacaoAtendimento situacao);
 
 
-    List<Agendamento> findByDataAgendamentoAndUsuario(LocalDate dataAgendamento, Usuario usuario);
+    @Query("SELECT a FROM Agendamento a JOIN FETCH a.usuario JOIN FETCH a.paciente WHERE a.dataAgendamento = :dataAgendamento AND a.usuario = :usuario ORDER BY a.dataAgendamento, a.turnoAgendamento, a.horaAtendimento, a.id")
+    List<Agendamento> findByDataAgendamentoAndUsuario(@Param("dataAgendamento") LocalDate dataAgendamento, @Param("usuario") Usuario usuario);
+
+    @Query("SELECT a FROM Agendamento a JOIN FETCH a.usuario JOIN FETCH a.paciente WHERE a.dataAgendamento BETWEEN :dataInicio AND :dataFim ORDER BY a.dataAgendamento, a.turnoAgendamento, a.horaAtendimento, a.id")
+    List<Agendamento> findAgendaByDataAgendamentoBetween(@Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim);
+
+    @Query("SELECT a FROM Agendamento a JOIN FETCH a.usuario JOIN FETCH a.paciente WHERE a.usuario = :usuario AND a.dataAgendamento BETWEEN :dataInicio AND :dataFim ORDER BY a.dataAgendamento, a.turnoAgendamento, a.horaAtendimento, a.id")
+    List<Agendamento> findAgendaByUsuarioAndDataAgendamentoBetween(@Param("usuario") Usuario usuario, @Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim);
 
     //Busca agendamentos do usuário em um intervalo
     List<Agendamento> findByUsuarioAndDataAgendamentoBetween(Usuario usuario, LocalDate startInclusive, LocalDate endInclusive);

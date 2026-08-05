@@ -2,7 +2,6 @@ package com.pet.buscaativa.services.impl;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +47,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AgendamentoServiceImpl implements AgendamentoService {
 
+    private static final long LIMITE_DIAS_CONSULTA_AGENDA = 62;
+
     private final AgendamentoRepository agendamentoRepository;
     private final BloqueioAgendaRepository bloqueioAgendaRepository;
     private final UsuarioRepository usuarioRepository;
@@ -59,11 +60,6 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private final PacienteService pacienteService;
     private final HistoricoPacienteService historicoPacienteService;
-
-    private static final LocalTime MANHA_INICIO = LocalTime.of(7, 0);
-    private static final LocalTime MANHA_FIM = LocalTime.of(12, 0);
-    private static final LocalTime TARDE_INICIO = LocalTime.of(13, 0);
-    private static final LocalTime TARDE_FIM = LocalTime.of(18, 0);
 
     @Override
     @Transactional
@@ -84,8 +80,6 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (agendamentoDTO.dataAgendamento().isBefore(LocalDate.now())) {
             throw new ValidationException("Não é permitido criar agendamento em data passada.");
         }
-
-        validarHorarioDentroDoTurno(agendamentoDTO.turnoAgendamento(), agendamentoDTO.horaAtendimento());
 
         if (bloqueioAgendaRepository.isDataBloqueadaParaUsuario(usuario, agendamentoDTO.dataAgendamento())) {
             throw new ConflictException("A agenda do profissional está bloqueada na data informada.");
@@ -219,15 +213,6 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         return padrao.map(Disponibilidade::getCapacidade).orElse(null);
     }
 
-    private void validarHorarioDentroDoTurno(TurnoEnum turno, LocalTime hora) {
-        if (turno == TurnoEnum.MANHA && (hora.isBefore(MANHA_INICIO) || hora.isAfter(MANHA_FIM))) {
-            throw new ValidationException("O horário do turno da manhã deve estar entre 07:00 e 12:00.");
-        }
-        if (turno == TurnoEnum.TARDE && (hora.isBefore(TARDE_INICIO) || hora.isAfter(TARDE_FIM))) {
-            throw new ValidationException("O horário do turno da tarde deve estar entre 13:00 e 18:00.");
-        }
-    }
-
     @Override
     public List<AgendamentoDTO> findAll() {
         var list = agendamentoRepository.findAll();
@@ -336,23 +321,36 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     @Override
     public List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, UUID profissionalIdPublico) {
+       return buscarAgendaPorPeriodo(data, data, emailLogado, profissionalIdPublico);
+    }
+
+    @Override
+    public List<AgendamentoDTO> buscarAgendaPorPeriodo(LocalDate dataInicio, LocalDate dataFim, String emailLogado,
+                                                       UUID profissionalIdPublico) {
+        if (dataInicio.isAfter(dataFim)) {
+            throw new ValidationException("A data inicial não pode ser posterior à data final.");
+        }
+        if (dataInicio.plusDays(LIMITE_DIAS_CONSULTA_AGENDA).isBefore(dataFim)) {
+            throw new ValidationException("O intervalo da agenda não pode ultrapassar 62 dias.");
+        }
+
         Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário logado não encontrado"));
 
-        List<Agendamento> agendamentos;
-
+        Usuario profissionalAlvo = null;
         if (usuarioLogado.getTipoUsuario() == TipoUsuario.PROFISSIONAL) {
-            agendamentos = agendamentoRepository.findByDataAgendamentoAndUsuario(data, usuarioLogado);
-        } else {
-            if (profissionalIdPublico != null) {
-                Usuario profissionalAlvo = usuarioRepository.findByIdPublico(profissionalIdPublico)
-                        .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado"));
-
-                agendamentos = agendamentoRepository.findByDataAgendamentoAndUsuario(data, profissionalAlvo);
-            } else {
-                agendamentos = agendamentoRepository.findByDataAgendamento(data);
+            if (profissionalIdPublico != null && !profissionalIdPublico.equals(usuarioLogado.getIdPublico())) {
+                throw new ValidationException("Profissional não pode consultar a agenda de outro profissional.");
             }
+            profissionalAlvo = usuarioLogado;
+        } else if (profissionalIdPublico != null) {
+            profissionalAlvo = usuarioRepository.findByIdPublico(profissionalIdPublico)
+                    .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado"));
         }
+
+        List<Agendamento> agendamentos = profissionalAlvo != null
+                ? agendamentoRepository.findAgendaByUsuarioAndDataAgendamentoBetween(profissionalAlvo, dataInicio, dataFim)
+                : agendamentoRepository.findAgendaByDataAgendamentoBetween(dataInicio, dataFim);
 
         return agendamentos.stream()
                 .filter(a -> a.getPaciente() != null && a.getPaciente().getStatusPaciente() == StatusPaciente.ATIVO)
@@ -414,5 +412,22 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         return agendamentoMapper.toAgendamentoDTO(agendamento);
     }
+
+    @Override
+    public AgendamentoDTO findById(Long id, String emailLogado) {
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário logado não encontrado"));
+
+        Agendamento agendamento = agendamentoRepository.findByIdWithUsuarioAndPaciente(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        if (usuarioLogado.getTipoUsuario() == TipoUsuario.PROFISSIONAL
+                && !agendamento.getUsuario().getIdPublico().equals(usuarioLogado.getIdPublico())) {
+            throw new ValidationException("Profissional não pode consultar a agenda de outro profissional.");
+        }
+
+        return agendamentoMapper.toAgendamentoDTO(agendamento);
+    }
+
 
 }

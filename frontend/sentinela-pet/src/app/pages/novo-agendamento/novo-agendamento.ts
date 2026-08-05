@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { PacientePayload, PacienteService } from '../../services/paciente/paciente-service';
 import {
@@ -16,12 +16,6 @@ import {
   ValidationError,
   VagasPorTurno,
 } from '../../services/agendamento-service';
-
-// Faixas de horário permitidas por turno.
-const FAIXAS_TURNO: Record<string, { inicio: string; fim: string }> = {
-  MANHA: { inicio: '07:00', fim: '12:00' },
-  TARDE: { inicio: '13:00', fim: '18:00' },
-};
 
 @Component({
   selector: 'app-novo-agendamento',
@@ -49,7 +43,10 @@ export class NovoAgendamento implements OnInit {
 
   // Passo 4: horário
   horaAtendimento = '';
-  erroHorario: string | null = null;
+
+  agendamentoOriginalId: number | null = null;
+  carregandoRemarcacao = false;
+  sugestoesRemarcacao: string[] = [];
 
   salvando = false;
   erroGeral: string | null = null;
@@ -57,14 +54,38 @@ export class NovoAgendamento implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private pacienteService: PacienteService,
     private profissionalService: ProfissionalService,
     private agendamentoService: AgendamentoService,
   ) {}
 
   ngOnInit(): void {
+    this.agendamentoOriginalId = Number(this.route.snapshot.queryParamMap.get('agendamentoOriginalId')) || null;
     this.carregarProfissionais();
+    if (this.agendamentoOriginalId) {
+      this.carregarAgendamentoOriginal(this.agendamentoOriginalId);
+    }
   }
+  carregarAgendamentoOriginal(id: number): void {
+    this.carregandoRemarcacao = true;
+    this.agendamentoService.buscarPorId(id).subscribe({
+      next: (agendamento) => {
+        this.pacienteSelecionado = { idPublico: agendamento.pacienteId, nome: agendamento.nomePaciente, tipoAcompanhamento: agendamento.tipoAcompanhamento } as PacientePayload;
+        this.profissionalSelecionadoId = agendamento.usuarioId;
+        this.turnoSelecionado = agendamento.turnoAgendamento;
+        this.carregandoRemarcacao = false;
+        this.agendamentoService.sugerirDatasRemarcacao(id).subscribe({ next: (datas) => this.sugestoesRemarcacao = datas, error: () => this.sugestoesRemarcacao = [] });
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar agendamento original', erro);
+        this.erroGeral = 'Não foi possível carregar o agendamento original para remarcação.';
+        this.carregandoRemarcacao = false;
+      },
+    });
+  }
+
+  get modoRemarcacao(): boolean { return this.agendamentoOriginalId !== null; }
 
   carregarProfissionais(): void {
     this.profissionalService.listar().subscribe({
@@ -114,8 +135,6 @@ export class NovoAgendamento implements OnInit {
   onProfissionalOuDataAlterado(): void {
     this.vagas = null;
     this.turnoSelecionado = null;
-    this.horaAtendimento = '';
-    this.erroHorario = null;
     this.erroGeral = null;
 
     if (!this.profissionalSelecionadoId || !this.dataSelecionada) {
@@ -142,30 +161,11 @@ export class NovoAgendamento implements OnInit {
   selecionarTurno(turno: string): void {
     if (this.vagasDoTurno(turno) <= 0) return;
     this.turnoSelecionado = turno;
-    this.horaAtendimento = '';
-    this.erroHorario = null;
   }
 
   vagasDoTurno(turno: string): number {
     if (!this.vagas) return 0;
     return turno === 'MANHA' ? this.vagas.MANHA : this.vagas.TARDE;
-  }
-
-  // Chamado no (change) do input de horário.
-  onHoraAlterada(): void {
-    this.erroHorario = null;
-
-    if (!this.horaAtendimento || !this.turnoSelecionado) {
-      return;
-    }
-
-    const faixa = FAIXAS_TURNO[this.turnoSelecionado];
-    if (!faixa) return;
-
-    if (this.horaAtendimento < faixa.inicio || this.horaAtendimento > faixa.fim) {
-      const labelTurno = this.turnoSelecionado === 'MANHA' ? 'manhã' : 'tarde';
-      this.erroHorario = `O horário do turno da ${labelTurno} deve estar entre ${faixa.inicio} e ${faixa.fim}.`;
-    }
   }
 
   get podeConfirmar(): boolean {
@@ -175,7 +175,6 @@ export class NovoAgendamento implements OnInit {
       this.dataSelecionada &&
       this.turnoSelecionado &&
       this.horaAtendimento &&
-      !this.erroHorario &&
       !this.salvando
     );
   }
@@ -193,6 +192,7 @@ export class NovoAgendamento implements OnInit {
       dataAgendamento: this.dataSelecionada,
       turnoAgendamento: this.turnoSelecionado!,
       horaAtendimento: this.horaAtendimento,
+      agendamentoOriginalId: this.agendamentoOriginalId ?? undefined,
     };
 
     this.agendamentoService.criarAgendamento(payload).subscribe({

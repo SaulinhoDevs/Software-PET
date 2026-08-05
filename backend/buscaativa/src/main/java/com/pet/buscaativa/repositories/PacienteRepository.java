@@ -1,17 +1,18 @@
 package com.pet.buscaativa.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-
-import com.pet.buscaativa.entities.Paciente;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
 
@@ -44,4 +45,23 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long>{
     List<Paciente> findByStatusPaciente(StatusPaciente statusPaciente);
 
     List<Paciente> findByStatusPacienteAndClassificacaoRisco(StatusPaciente statusPaciente, ClassificacaoRisco classificacaoRisco);
+
+    long countByStatusPaciente(StatusPaciente statusPaciente);
+
+    long countByStatusPacienteAndClassificacaoRiscoIn(StatusPaciente statusPaciente, List<ClassificacaoRisco> classificacoes);
+
+    @Query("""
+            select p from Paciente p
+            where p.statusPaciente = :statusPaciente
+              and p.classificacaoRisco in :classificacoes
+            order by case p.classificacaoRisco
+                when com.pet.buscaativa.entities.enums.ClassificacaoRisco.VERMELHO then 0
+                when com.pet.buscaativa.entities.enums.ClassificacaoRisco.AMARELO then 1
+                else 2 end,
+                p.countFaltas desc,
+                p.nome asc
+            """)
+    List<Paciente> findPacientesPrioritarios(@Param("statusPaciente") StatusPaciente statusPaciente,
+                                             @Param("classificacoes") List<ClassificacaoRisco> classificacoes,
+                                             Pageable pageable);
 }

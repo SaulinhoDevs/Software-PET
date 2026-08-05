@@ -2,10 +2,12 @@
 
   <section class="page-header">
     <div class="page-title">
-      <h1>Novo Agendamento</h1>
-      <p>Selecione o paciente, o profissional e o horário do atendimento.</p>
+      <h1>{{ modoRemarcacao ? 'Remarcar Atendimento' : 'Novo Agendamento' }}</h1>
+      <p>{{ modoRemarcacao ? 'Escolha a nova data, turno e horário sem alterar o original antes da confirmação.' : 'Selecione o paciente, o profissional e o horário do atendimento.' }}</p>
     </div>
   </section>
+
+  <div class="empty-inline" *ngIf="carregandoRemarcacao">Carregando dados da remarcação...</div>
 
   <div class="alert-erro" *ngIf="erroGeral">
     {{ erroGeral }}
@@ -82,20 +84,14 @@
   <section class="detail-card" *ngIf="turnoSelecionado">
     <h2 class="detail-card-title">3. Horário</h2>
 
-    <div class="form-inline">
-      <input type="time" [(ngModel)]="horaAtendimento" (change)="onHoraAlterada()"
-        [min]="turnoSelecionado === 'MANHA' ? '07:00' : '13:00'"
-        [max]="turnoSelecionado === 'MANHA' ? '12:00' : '18:00'" />
+    <div class="sugestoes-remarcacao" *ngIf="modoRemarcacao && sugestoesRemarcacao.length > 0">
+      <span>Datas sugeridas:</span>
+      <button type="button" *ngFor="let data of sugestoesRemarcacao" (click)="dataSelecionada = data; onProfissionalOuDataAlterado()">{{ data }}</button>
     </div>
 
-    <small class="hint-horario" *ngIf="!erroHorario">
-      Horário permitido: {{ turnoSelecionado === 'MANHA' ? '07:00 às 12:00' : '13:00 às 18:00' }}
-    </small>
-
-    <small *ngIf="erroHorario" class="erro-campo">
-      {{ erroHorario }}
-    </small>
-
+    <div class="form-inline">
+      <input type="time" [(ngModel)]="horaAtendimento" />
+    </div>
     <small *ngIf="errosPorCampo['horaAtendimento']" class="erro-campo">
       {{ errosPorCampo['horaAtendimento'] }}
     </small>
@@ -107,7 +103,7 @@
     </button>
 
     <button type="button" class="btn btn-save" [disabled]="!podeConfirmar" (click)="confirmarAgendamento()">
-      {{ salvando ? 'Salvando...' : 'Confirmar Agendamento' }}
+      {{ salvando ? 'Salvando...' : (modoRemarcacao ? 'Confirmar Remarcação' : 'Confirmar Agendamento') }}
     </button>
   </section>
 

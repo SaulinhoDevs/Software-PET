@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
@@ -14,6 +13,8 @@ import com.pet.buscaativa.entities.enums.TurnoEnum;
 public interface AgendamentoService {
 
     AgendamentoDTO save(AgendamentoDTO agendamentoDTO);
+
+    AgendamentoDTO findById(Long id, String emailLogado);
 
     List<LocalDate> sugerirDataRemarcacao(Long agendamento);
 
@@ -24,6 +25,8 @@ public interface AgendamentoService {
     List<LocalDate> buscarProximasVagasDisponiveis(Usuario usuario, TurnoEnum turno, LocalDate dataInicio, int quantidadeVagas);
 
     List<AgendamentoDTO> buscarAgendaDoDia(LocalDate data, String emailLogado, UUID profissionalIdPublico);
+
+    List<AgendamentoDTO> buscarAgendaPorPeriodo(LocalDate dataInicio, LocalDate dataFim, String emailLogado, UUID profissionalIdPublico);
 
     AgendamentoDTO atualizarStatus(Long id, SituacaoAtendimento novoStatus, Integer expectedVersion);
 }
