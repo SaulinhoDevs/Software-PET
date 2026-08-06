@@ -1,8 +1,8 @@
 package com.pet.buscaativa.repositories;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
+import java.time.LocalTime;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -43,6 +43,12 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
                             @Param("turno") TurnoEnum turnoAgendamento,
                             @Param("situacao") SituacaoAtendimento situacao);
 
+    @Query("SELECT COUNT(a) FROM Agendamento a WHERE a.usuario = :usuario AND a.dataAgendamento BETWEEN :inicio AND :fim AND a.situacaoAtendimento IN :situacoes")
+    long contarAtivosNoPeriodo(@Param("usuario") Usuario usuario,
+                               @Param("inicio") LocalDate inicio,
+                               @Param("fim") LocalDate fim,
+                               @Param("situacoes") List<SituacaoAtendimento> situacoes);
+
 
     @Query("SELECT a FROM Agendamento a JOIN FETCH a.usuario JOIN FETCH a.paciente WHERE a.dataAgendamento = :dataAgendamento AND a.usuario = :usuario ORDER BY a.dataAgendamento, a.turnoAgendamento, a.horaAtendimento, a.id")
     List<Agendamento> findByDataAgendamentoAndUsuario(@Param("dataAgendamento") LocalDate dataAgendamento, @Param("usuario") Usuario usuario);
@@ -70,6 +76,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Long> contarOcupacaoPorDataDisponibilidade(@Param("usuario") Usuario usuario,
                                                     @Param("dataInicio") LocalDate dataInicio, @Param("diaBanco") int diaBanco,
                                                     @Param("turno") TurnoEnum turno, @Param("situacoes") List<SituacaoAtendimento> situacoes);
+
 
     // Verifica se já existe um agendamento ativo do profissional na mesma data e horário exato
     @Query("SELECT COUNT(a) > 0 FROM Agendamento a WHERE a.usuario = :usuario " +

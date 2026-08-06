@@ -3,6 +3,7 @@ package com.pet.buscaativa.entities.dto;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record BloqueioAgendaDTO(
@@ -16,6 +17,7 @@ public record BloqueioAgendaDTO(
         @NotNull
         LocalDate dataFim,
 
+        @NotBlank(message = "Informe o motivo do bloqueio.")
         String motivoBloqueio
 ) {
 }
