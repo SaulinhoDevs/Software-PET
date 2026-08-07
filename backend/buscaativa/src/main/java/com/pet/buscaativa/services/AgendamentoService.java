@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.pet.buscaativa.entities.Usuario;
 import com.pet.buscaativa.entities.dto.AgendamentoDTO;
+import com.pet.buscaativa.entities.dto.HorariosDisponiveisDTO;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.entities.enums.TurnoEnum;
 
@@ -19,6 +20,8 @@ public interface AgendamentoService {
     List<LocalDate> sugerirDataRemarcacao(Long agendamento);
 
     Map<TurnoEnum, Integer> calcularVagasDisponiveis(UUID usuarioIdPublico, LocalDate data);
+
+    HorariosDisponiveisDTO buscarHorariosDisponiveis(UUID usuarioIdPublico, LocalDate data, TurnoEnum turno);
 
     List<AgendamentoDTO> findAll();
 

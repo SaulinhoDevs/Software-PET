@@ -1,21 +1,37 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-
-import { PacientePayload, PacienteService } from '../../services/paciente/paciente-service';
 import {
-  ProfissionalPayload,
-  ProfissionalService,
-} from '../../services/profissional/profissional-service';
+  Subject,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  of,
+  switchMap,
+  takeUntil,
+} from 'rxjs';
+
 import {
   AgendamentoService,
+  HorarioDisponivel,
+  HorariosDisponiveisPayload,
   NovoAgendamentoPayload,
   StandardError,
   ValidationError,
   VagasPorTurno,
 } from '../../services/agendamento-service';
+import {
+  PacientePayload,
+  PacienteService,
+} from '../../services/paciente/paciente-service';
+import {
+  ProfissionalPayload,
+  ProfissionalService,
+} from '../../services/profissional/profissional-service';
 
 @Component({
   selector: 'app-novo-agendamento',
@@ -24,24 +40,27 @@ import {
   templateUrl: './novo-agendamento.html',
   styleUrl: './novo-agendamento.css',
 })
-export class NovoAgendamento implements OnInit {
-  // Passo 1: paciente
+export class NovoAgendamento implements OnInit, OnDestroy {
   termoPesquisaPaciente = '';
   resultadosPacientes: PacientePayload[] = [];
   pacienteSelecionado: PacientePayload | null = null;
   buscandoPaciente = false;
+  pesquisaRealizada = false;
 
-  // Passo 2: profissional
   profissionais: ProfissionalPayload[] = [];
   profissionalSelecionadoId: string | null = null;
 
-  // Passo 3: data e turno
   dataSelecionada = '';
+  readonly dataMinima = this.dataLocalHoje();
+
   vagas: VagasPorTurno | null = null;
   consultandoVagas = false;
   turnoSelecionado: string | null = null;
 
-  // Passo 4: horário
+  horarios: HorarioDisponivel[] = [];
+  horariosPayload: HorariosDisponiveisPayload | null = null;
+  consultandoHorarios = false;
+  erroHorarios: string | null = null;
   horaAtendimento = '';
 
   agendamentoOriginalId: number | null = null;
@@ -52,46 +71,150 @@ export class NovoAgendamento implements OnInit {
   erroGeral: string | null = null;
   errosPorCampo: Record<string, string> = {};
 
+  private readonly pesquisa$ = new Subject<string>();
+  private readonly horarioConsulta$ = new Subject<{
+    usuarioId: string;
+    data: string;
+    turno: string;
+  }>();
+  private readonly destroy$ = new Subject<void>();
+
   constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private pacienteService: PacienteService,
-    private profissionalService: ProfissionalService,
-    private agendamentoService: AgendamentoService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly pacienteService: PacienteService,
+    private readonly profissionalService: ProfissionalService,
+    private readonly agendamentoService: AgendamentoService,
   ) {}
 
   ngOnInit(): void {
-    this.agendamentoOriginalId = Number(this.route.snapshot.queryParamMap.get('agendamentoOriginalId')) || null;
+    this.configurarPesquisa();
+    this.configurarConsultaHorarios();
+
+    this.agendamentoOriginalId =
+      Number(this.route.snapshot.queryParamMap.get('agendamentoOriginalId')) || null;
+
     this.carregarProfissionais();
+
     if (this.agendamentoOriginalId) {
       this.carregarAgendamentoOriginal(this.agendamentoOriginalId);
     }
   }
-  carregarAgendamentoOriginal(id: number): void {
-    this.carregandoRemarcacao = true;
-    this.agendamentoService.buscarPorId(id).subscribe({
-      next: (agendamento) => {
-        this.pacienteSelecionado = { idPublico: agendamento.pacienteId, nome: agendamento.nomePaciente, tipoAcompanhamento: agendamento.tipoAcompanhamento } as PacientePayload;
-        this.profissionalSelecionadoId = agendamento.usuarioId;
-        this.turnoSelecionado = agendamento.turnoAgendamento;
-        this.carregandoRemarcacao = false;
-        this.agendamentoService.sugerirDatasRemarcacao(id).subscribe({ next: (datas) => this.sugestoesRemarcacao = datas, error: () => this.sugestoesRemarcacao = [] });
-      },
-      error: (erro) => {
-        console.error('Erro ao carregar agendamento original', erro);
-        this.erroGeral = 'Não foi possível carregar o agendamento original para remarcação.';
-        this.carregandoRemarcacao = false;
-      },
-    });
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  get modoRemarcacao(): boolean { return this.agendamentoOriginalId !== null; }
+  get modoRemarcacao(): boolean {
+    return this.agendamentoOriginalId !== null;
+  }
+
+  private configurarPesquisa(): void {
+    this.pesquisa$
+      .pipe(
+        map((termo) => termo.trim()),
+        debounceTime(350),
+        distinctUntilChanged(),
+        switchMap((termo) => {
+          const digitos = termo.replace(/\D/g, '');
+          const temLetras = /[A-Za-zÀ-ÿ]/.test(termo);
+
+          this.pesquisaRealizada = false;
+
+          const nomeInvalido = temLetras && termo.length < 3;
+          const documentoInvalido =
+            !temLetras && ![11, 15].includes(digitos.length);
+
+          if (nomeInvalido || documentoInvalido) {
+            this.buscandoPaciente = false;
+            return of<PacientePayload[]>([]);
+          }
+
+          this.buscandoPaciente = true;
+
+          const consulta = temLetras
+            ? this.pacienteService.buscarPorNome(termo)
+            : digitos.length === 11
+              ? this.pacienteService
+                  .buscarPorCpf(digitos)
+                  .pipe(map((paciente) => [paciente]))
+              : this.pacienteService
+                  .buscarPorCns(digitos)
+                  .pipe(map((paciente) => [paciente]));
+
+          return consulta.pipe(
+            catchError(() => of<PacientePayload[]>([])),
+            finalize(() => {
+              this.buscandoPaciente = false;
+              this.pesquisaRealizada = true;
+            }),
+          );
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((pacientes) => {
+        this.resultadosPacientes = pacientes;
+      });
+  }
+
+  private configurarConsultaHorarios(): void {
+    this.horarioConsulta$
+      .pipe(
+        switchMap((consulta) => {
+          this.consultandoHorarios = true;
+          this.erroHorarios = null;
+
+          return this.agendamentoService
+            .buscarHorariosDisponiveis(
+              consulta.usuarioId,
+              consulta.data,
+              consulta.turno,
+            )
+            .pipe(
+              catchError((erro: HttpErrorResponse) => {
+                this.erroHorarios =
+                  erro.error?.message || 'Não foi possível consultar os horários.';
+                return of<HorariosDisponiveisPayload | null>(null);
+              }),
+              finalize(() => {
+                this.consultandoHorarios = false;
+              }),
+            );
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((payload) => {
+        this.horariosPayload = payload;
+        this.horarios = payload?.horarios ?? [];
+      });
+  }
+
+  pesquisarPaciente(): void {
+    this.pesquisa$.next(this.termoPesquisaPaciente);
+  }
+
+  selecionarPaciente(paciente: PacientePayload): void {
+    this.pacienteSelecionado = paciente;
+    this.resultadosPacientes = [];
+    this.termoPesquisaPaciente = '';
+    this.pesquisaRealizada = false;
+  }
+
+  trocarPaciente(): void {
+    if (this.modoRemarcacao) {
+      return;
+    }
+
+    this.pacienteSelecionado = null;
+  }
 
   carregarProfissionais(): void {
     this.profissionalService.listar().subscribe({
       next: (profissionais) => {
-        // Recepção não atende, então não entra como opção de profissional aqui
-        this.profissionais = profissionais.filter((p) => p.tipoUsuario !== 'RECEPCAO');
+        this.profissionais = profissionais.filter(
+          (profissional) => profissional.tipoUsuario !== 'RECEPCAO',
+        );
       },
       error: (erro) => {
         console.error('Erro ao carregar profissionais', erro);
@@ -100,41 +223,50 @@ export class NovoAgendamento implements OnInit {
     });
   }
 
-  pesquisarPaciente(): void {
-    const termo = this.termoPesquisaPaciente.trim();
+  carregarAgendamentoOriginal(id: number): void {
+    this.carregandoRemarcacao = true;
 
-    if (termo.length < 2) {
-      this.resultadosPacientes = [];
-      return;
-    }
+    this.agendamentoService.buscarPorId(id).subscribe({
+      next: (agendamento) => {
+        this.profissionalSelecionadoId = agendamento.usuarioId;
 
-    this.buscandoPaciente = true;
+        this.pacienteService.buscarPorId(agendamento.pacienteId).subscribe({
+          next: (paciente) => {
+            this.pacienteSelecionado = paciente;
+          },
+          error: () => {
+            this.pacienteSelecionado = {
+              idPublico: agendamento.pacienteId,
+              nome: agendamento.nomePaciente,
+              tipoAcompanhamento: agendamento.tipoAcompanhamento,
+            } as PacientePayload;
+          },
+        });
 
-    this.pacienteService.buscarPorNome(termo).subscribe({
-      next: (pacientes) => {
-        this.resultadosPacientes = pacientes;
-        this.buscandoPaciente = false;
+        this.carregandoRemarcacao = false;
+
+        this.agendamentoService.sugerirDatasRemarcacao(id).subscribe({
+          next: (datas) => {
+            this.sugestoesRemarcacao = datas;
+          },
+          error: () => {
+            this.sugestoesRemarcacao = [];
+          },
+        });
       },
-      error: () => {
-        this.resultadosPacientes = [];
-        this.buscandoPaciente = false;
+      error: (erro) => {
+        console.error('Erro ao carregar agendamento original', erro);
+        this.erroGeral =
+          'Não foi possível carregar o agendamento original para remarcação.';
+        this.carregandoRemarcacao = false;
       },
     });
-  }
-
-  selecionarPaciente(paciente: PacientePayload): void {
-    this.pacienteSelecionado = paciente;
-    this.resultadosPacientes = [];
-    this.termoPesquisaPaciente = '';
-  }
-
-  trocarPaciente(): void {
-    this.pacienteSelecionado = null;
   }
 
   onProfissionalOuDataAlterado(): void {
     this.vagas = null;
     this.turnoSelecionado = null;
+    this.limparHorario();
     this.erroGeral = null;
 
     if (!this.profissionalSelecionadoId || !this.dataSelecionada) {
@@ -145,26 +277,66 @@ export class NovoAgendamento implements OnInit {
 
     this.agendamentoService
       .consultarVagas(this.profissionalSelecionadoId, this.dataSelecionada)
+      .pipe(
+        finalize(() => {
+          this.consultandoVagas = false;
+        }),
+      )
       .subscribe({
         next: (vagas) => {
           this.vagas = vagas;
-          this.consultandoVagas = false;
         },
         error: (erro) => {
           console.error('Erro ao consultar vagas', erro);
           this.erroGeral = 'Não foi possível consultar as vagas disponíveis.';
-          this.consultandoVagas = false;
         },
       });
   }
 
+  selecionarDataSugerida(data: string): void {
+    this.dataSelecionada = data;
+    this.onProfissionalOuDataAlterado();
+  }
+
   selecionarTurno(turno: string): void {
-    if (this.vagasDoTurno(turno) <= 0) return;
+    if (
+      this.vagasDoTurno(turno) <= 0 ||
+      !this.profissionalSelecionadoId ||
+      !this.dataSelecionada
+    ) {
+      return;
+    }
+
     this.turnoSelecionado = turno;
+    this.limparHorario();
+
+    this.horarioConsulta$.next({
+      usuarioId: this.profissionalSelecionadoId,
+      data: this.dataSelecionada,
+      turno,
+    });
+  }
+
+  selecionarHorario(horario: HorarioDisponivel): void {
+    if (!horario.disponivel) {
+      return;
+    }
+
+    this.horaAtendimento = horario.hora.slice(0, 5);
+  }
+
+  private limparHorario(): void {
+    this.horaAtendimento = '';
+    this.horarios = [];
+    this.horariosPayload = null;
+    this.erroHorarios = null;
   }
 
   vagasDoTurno(turno: string): number {
-    if (!this.vagas) return 0;
+    if (!this.vagas) {
+      return 0;
+    }
+
     return turno === 'MANHA' ? this.vagas.MANHA : this.vagas.TARDE;
   }
 
@@ -180,11 +352,13 @@ export class NovoAgendamento implements OnInit {
   }
 
   confirmarAgendamento(): void {
-    if (!this.podeConfirmar) return;
+    if (!this.podeConfirmar) {
+      return;
+    }
 
+    this.salvando = true;
     this.erroGeral = null;
     this.errosPorCampo = {};
-    this.salvando = true;
 
     const payload: NovoAgendamentoPayload = {
       usuarioId: this.profissionalSelecionadoId!,
@@ -199,7 +373,9 @@ export class NovoAgendamento implements OnInit {
       next: () => {
         this.salvando = false;
         this.router.navigate(['/agenda'], {
-          queryParams: { data: this.dataSelecionada },
+          queryParams: {
+            data: this.dataSelecionada,
+          },
         });
       },
       error: (erro: HttpErrorResponse) => {
@@ -217,37 +393,111 @@ export class NovoAgendamento implements OnInit {
 
     if (erro.status === 422 && Array.isArray(erro.error.errors)) {
       const validationError = erro.error as ValidationError;
+
       validationError.errors.forEach((campo) => {
         this.errosPorCampo[campo.fieldName] = campo.message;
       });
+
       this.erroGeral = validationError.message;
       return;
     }
 
-    if (erro.error.message) {
-      const standardError = erro.error as StandardError;
-      this.erroGeral = standardError.message;
-      return;
-    }
-
-    this.erroGeral = 'Não foi possível criar o agendamento.';
+    this.erroGeral =
+      (erro.error as StandardError)?.message ||
+      'Não foi possível criar o agendamento.';
   }
 
   cancelar(): void {
     this.router.navigate(['/agenda']);
   }
 
-  labelEnum(valor: string | undefined): string {
-    if (!valor) return '-';
+  profissionalSelecionado(): ProfissionalPayload | undefined {
+    return this.profissionais.find(
+      (profissional) => profissional.idPublico === this.profissionalSelecionadoId,
+    );
+  }
+
+  labelEnum(valor?: string): string {
+    if (!valor) {
+      return 'Não selecionado';
+    }
+
     return valor
       .replaceAll('_', ' ')
       .toLowerCase()
       .replace(/\b\w/g, (letra) => letra.toUpperCase());
   }
 
-  formatarCpf(cpf: string | undefined): string {
-    if (!cpf) return '-';
-    const numeros = cpf.replace(/\D/g, '');
-    return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  formatarCpf(cpf?: string): string {
+    const numeros = cpf?.replace(/\D/g, '') ?? '';
+
+    if (numeros.length !== 11) {
+      return 'Não informado';
+    }
+
+    return numeros.replace(
+      /(\d{3})(\d{3})(\d{3})(\d{2})/,
+      '$1.$2.$3-$4',
+    );
+  }
+
+  idade(data?: string): number | null {
+    if (!data) {
+      return null;
+    }
+
+    const hoje = new Date();
+    const nascimento = new Date(`${data}T00:00:00`);
+
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+
+    const aniversarioNesteAno = new Date(
+      hoje.getFullYear(),
+      nascimento.getMonth(),
+      nascimento.getDate(),
+    );
+
+    if (hoje < aniversarioNesteAno) {
+      idade--;
+    }
+
+    return idade;
+  }
+
+  formatarData(data?: string): string {
+    if (!data) {
+      return 'Não selecionado';
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'long',
+    }).format(new Date(`${data}T00:00:00`));
+  }
+
+  mensagemHorarios(): string {
+    const motivo = this.horariosPayload?.motivoIndisponibilidade;
+
+    if (motivo === 'AGENDA_BLOQUEADA') {
+      return 'A agenda do profissional está bloqueada nesta data.';
+    }
+
+    if (motivo === 'TURNO_NAO_CONFIGURADO') {
+      return 'Este profissional não possui disponibilidade neste turno.';
+    }
+
+    if (motivo === 'CAPACIDADE_ESGOTADA') {
+      return 'Não há mais vagas disponíveis neste turno.';
+    }
+
+    return 'Nenhum horário disponível para este turno.';
+  }
+
+  private dataLocalHoje(): string {
+    const data = new Date();
+    const doisDigitos = (valor: number) => String(valor).padStart(2, '0');
+
+    return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(
+      data.getDate(),
+    )}`;
   }
 }
