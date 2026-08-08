@@ -7,11 +7,17 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.pet.buscaativa.entities.Paciente;
+import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.dto.AlertaBuscaAtivaDTO;
 import com.pet.buscaativa.entities.dto.EncerramentoPacienteDTO;
 import com.pet.buscaativa.entities.dto.PacienteDTO;
+import com.pet.buscaativa.entities.dto.PacienteDetalheDTO;
+import com.pet.buscaativa.entities.dto.PacienteListaResponseDTO;
 import com.pet.buscaativa.entities.dto.ReativacaoPacienteDTO;
+import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
+import com.pet.buscaativa.entities.enums.StatusPaciente;
+import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
 
 @Service
 public interface PacienteService {
@@ -21,6 +27,12 @@ public interface PacienteService {
     List<PacienteDTO> findAll();
 
     PacienteDTO findById(UUID idPublico);
+
+    PacienteDetalheDTO findDetalhe(UUID idPublico);
+
+    PacienteListaResponseDTO pesquisar(String q, ClassificacaoRisco classificacao, StatusPaciente status,
+            TipoAcompanhamento tipoAcompanhamento, int page, int size);
+    List<AgendamentoDTO> listarAgendamentos(UUID idPublico);
 
     PacienteDTO findByCns(String cns);
 

@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,7 +22,7 @@ import jakarta.persistence.LockModeType;
 
 
 @Repository
-public interface PacienteRepository extends JpaRepository<Paciente, Long>{
+public interface PacienteRepository extends JpaRepository<Paciente, Long>, JpaSpecificationExecutor<Paciente>{
  
     Optional<Paciente> findByIdPublico(UUID idPublico);
 
