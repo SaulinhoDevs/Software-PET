@@ -1,0 +1,166 @@
+<main class="container">
+
+  <section class="page-header">
+    <div class="page-title">
+      <h1>Agendar Grupo Terapêutico</h1>
+      <p>Crie um novo grupo ou agende a próxima sessão de um grupo já existente.</p>
+    </div>
+  </section>
+
+  <div class="alert-erro" *ngIf="erroGeral">
+    {{ erroGeral }}
+  </div>
+
+  <!-- ALTERNADOR DE MODO -->
+  <section class="detail-card">
+    <div class="modo-toggle">
+      <button type="button" class="modo-btn" [class.modo-ativo]="modo === 'NOVO_GRUPO'"
+        (click)="trocarModo('NOVO_GRUPO')">
+        + Criar Novo Grupo
+      </button>
+
+      <button type="button" class="modo-btn" [class.modo-ativo]="modo === 'GRUPO_EXISTENTE'"
+        (click)="trocarModo('GRUPO_EXISTENTE')">
+        Agendar Sessão de Grupo Existente
+      </button>
+    </div>
+  </section>
+
+  <!-- MODO: NOVO GRUPO -->
+  <section class="detail-card" *ngIf="modo === 'NOVO_GRUPO'">
+    <h2 class="detail-card-title">1. Dados do Grupo</h2>
+
+    <div class="form-grid">
+      <div class="form-group form-group-large">
+        <label>Tema do grupo</label>
+        <input type="text" [(ngModel)]="tema" placeholder="Ex: Ansiedade e regulação emocional" />
+        <small *ngIf="errosPorCampo['tema']" class="erro-campo">{{ errosPorCampo['tema'] }}</small>
+      </div>
+
+      <div class="form-group">
+        <label>Coordenador</label>
+        <select [(ngModel)]="coordenadorId">
+          <option [ngValue]="null" disabled>Selecione o coordenador</option>
+          <option *ngFor="let c of coordenadores" [value]="c.idPublico">{{ c.nome }}</option>
+        </select>
+        <small *ngIf="errosPorCampo['coordenadorId']" class="erro-campo">
+          {{ errosPorCampo['coordenadorId'] }}
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Recorrência</label>
+        <select [(ngModel)]="recorrencia">
+          <option [ngValue]="null" disabled>Selecione a recorrência</option>
+          <option *ngFor="let r of recorrencias" [value]="r.valor">{{ r.label }}</option>
+        </select>
+        <small *ngIf="errosPorCampo['recorrencia']" class="erro-campo">
+          {{ errosPorCampo['recorrencia'] }}
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Data da primeira sessão</label>
+        <input type="date" [(ngModel)]="dataSessao" />
+        <small *ngIf="errosPorCampo['dataPrimeiraSessao']" class="erro-campo">
+          {{ errosPorCampo['dataPrimeiraSessao'] }}
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Horário</label>
+        <input type="time" [(ngModel)]="horario" />
+        <small *ngIf="errosPorCampo['horario']" class="erro-campo">{{ errosPorCampo['horario'] }}</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODO: GRUPO EXISTENTE -->
+  <section class="detail-card" *ngIf="modo === 'GRUPO_EXISTENTE'">
+    <h2 class="detail-card-title">1. Selecione o Grupo</h2>
+
+    <div class="form-group">
+      <select [(ngModel)]="grupoSelecionadoId" (change)="onGrupoSelecionado()">
+        <option [ngValue]="null" disabled>Selecione um grupo</option>
+        <option *ngFor="let g of grupos" [value]="g.id">{{ g.tema }} — {{ labelEnum(g.recorrencia) }}</option>
+      </select>
+    </div>
+
+    <ng-container *ngIf="grupoSelecionado">
+      <div class="grupo-resumo">
+        <div class="resumo-item">
+          <span class="resumo-label">Coordenador</span>
+          <span class="resumo-valor">{{ grupoSelecionado.nomeCoordenador }}</span>
+        </div>
+        <div class="resumo-item">
+          <span class="resumo-label">Recorrência</span>
+          <span class="resumo-valor">{{ labelEnum(grupoSelecionado.recorrencia) }}</span>
+        </div>
+      </div>
+
+      <p class="empty-inline" *ngIf="carregandoSugestaoData">Sugerindo próxima data...</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Data da sessão</label>
+          <input type="date" [(ngModel)]="dataSessao" />
+          <small *ngIf="errosPorCampo['dataSessao']" class="erro-campo">
+            {{ errosPorCampo['dataSessao'] }}
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Horário</label>
+          <input type="time" [(ngModel)]="horario" />
+        </div>
+      </div>
+    </ng-container>
+  </section>
+
+  <!-- PARTICIPANTES (sempre escolhidos do zero) -->
+  <section class="detail-card" *ngIf="(modo === 'NOVO_GRUPO') || grupoSelecionado">
+    <h2 class="detail-card-title">2. Participantes desta Sessão</h2>
+    <p class="section-hint">
+      Os participantes são escolhidos para cada sessão individualmente — não são copiados de sessões anteriores.
+    </p>
+
+    <input type="text" class="search-input" placeholder="Digite o nome do paciente" [(ngModel)]="termoPesquisaPaciente"
+      (input)="pesquisarPaciente()" />
+
+    <div class="lista-itens" *ngIf="resultadosPacientes.length > 0">
+      <div class="item-linha item-clicavel" *ngFor="let p of resultadosPacientes" (click)="adicionarParticipante(p)">
+        <span class="item-info">
+          <strong>{{ p.nome }}</strong> — CPF: {{ formatarCpf(p.cpf) }}
+        </span>
+        <span class="item-selecionar">Adicionar</span>
+      </div>
+    </div>
+
+    <p class="empty-inline"
+      *ngIf="!buscandoPaciente && termoPesquisaPaciente.length >= 2 && resultadosPacientes.length === 0">
+      Nenhum paciente encontrado.
+    </p>
+
+    <div class="participantes-selecionados" *ngIf="participantesSelecionados.length > 0">
+      <div class="participante-chip" *ngFor="let p of participantesSelecionados">
+        {{ p.nome }}
+        <button type="button" class="chip-remover" (click)="removerParticipante(p)">×</button>
+      </div>
+    </div>
+
+    <p class="empty-inline" *ngIf="participantesSelecionados.length === 0">
+      Nenhum participante adicionado ainda.
+    </p>
+  </section>
+
+  <section class="form-actions">
+    <button type="button" class="btn btn-cancel" (click)="cancelar()" [disabled]="salvando">
+      Cancelar
+    </button>
+
+    <button type="button" class="btn btn-save" [disabled]="!podeConfirmar" (click)="confirmar()">
+      {{ salvando ? 'Salvando...' : 'Confirmar' }}
+    </button>
+  </section>
+
+</main>

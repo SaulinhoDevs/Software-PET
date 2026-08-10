@@ -19,6 +19,7 @@ import { HistoricoPaciente } from './pages/historico-paciente/historico-paciente
 import { AgendamentosPaciente } from './pages/agendamentos-paciente/agendamentos-paciente';
 import { Relatorios } from './pages/relatorios/relatorios';
 import { roleGuard } from './auth/role-guard';
+import { NovoAgendamentoGrupo } from './pages/novo-agendamento-grupo/novo-agendamento-grupo';
 
 const TODOS = ['ADMINISTRADOR', 'RECEPCAO', 'PROFISSIONAL'];
 const ADMIN_RECEPCAO = ['ADMINISTRADOR', 'RECEPCAO'];
@@ -53,6 +54,7 @@ export const routes: Routes = [
       { path: 'profissionais/novo', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
       { path: 'profissionais/detalhes/:id', component: DetalheProfissional, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
       { path: 'profissionais/editar/:id', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
+      { path: 'grupos/novo', component: NovoAgendamentoGrupo },
       { path: 'relatorios', component: Relatorios },
     ],
   },
