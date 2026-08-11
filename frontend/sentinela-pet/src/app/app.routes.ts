@@ -20,7 +20,7 @@ import { AgendamentosPaciente } from './pages/agendamentos-paciente/agendamentos
 import { Relatorios } from './pages/relatorios/relatorios';
 import { roleGuard } from './auth/role-guard';
 import { NovoAgendamentoGrupo } from './pages/novo-agendamento-grupo/novo-agendamento-grupo';
-import { GruposTerapeuticos } from './pages/grupos-terapeuticos/grupos-terapeuticos';
+import { AgendamentoGrupo } from './pages/agendamento-grupo/agendamento-grupo';
 
 const TODOS = ['ADMINISTRADOR', 'RECEPCAO', 'PROFISSIONAL'];
 const ADMIN_RECEPCAO = ['ADMINISTRADOR', 'RECEPCAO'];
@@ -43,18 +43,69 @@ export const routes: Routes = [
       { path: 'inicio', component: Inicio },
       { path: 'painel', component: Painel },
       { path: 'agenda', component: Agenda },
-      { path: 'agenda/configuracoes', component: ConfiguracaoAgenda, canActivate: [roleGuard], data: { roles: TODOS } },
+      {
+        path: 'agenda/configuracoes',
+        component: ConfiguracaoAgenda,
+        canActivate: [roleGuard],
+        data: { roles: TODOS },
+      },
       { path: 'agenda/novo', component: NovoAgendamento },
       { path: 'pacientes', component: Pacientes, canActivate: [roleGuard], data: { roles: TODOS } },
-      { path: 'pacientes/detalhes/:id', component: DetalhePaciente, canActivate: [roleGuard], data: { roles: TODOS } },
-      { path: 'pacientes/detalhes/:id/historico', component: HistoricoPaciente, canActivate: [roleGuard], data: { roles: TODOS } },
-      { path: 'pacientes/detalhes/:id/agendamentos', component: AgendamentosPaciente, canActivate: [roleGuard], data: { roles: TODOS } },
-      { path: 'pacientes/novo', component: CadastroPaciente, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
-      { path: 'pacientes/editar/:id', component: CadastroPaciente, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
-      { path: 'profissionais', component: Profissionais, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
-      { path: 'profissionais/novo', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
-      { path: 'profissionais/detalhes/:id', component: DetalheProfissional, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
-      { path: 'profissionais/editar/:id', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
+      {
+        path: 'pacientes/detalhes/:id',
+        component: DetalhePaciente,
+        canActivate: [roleGuard],
+        data: { roles: TODOS },
+      },
+      {
+        path: 'pacientes/detalhes/:id/historico',
+        component: HistoricoPaciente,
+        canActivate: [roleGuard],
+        data: { roles: TODOS },
+      },
+      {
+        path: 'pacientes/detalhes/:id/agendamentos',
+        component: AgendamentosPaciente,
+        canActivate: [roleGuard],
+        data: { roles: TODOS },
+      },
+      {
+        path: 'pacientes/novo',
+        component: CadastroPaciente,
+        canActivate: [roleGuard],
+        data: { roles: ADMIN_RECEPCAO },
+      },
+      {
+        path: 'pacientes/editar/:id',
+        component: CadastroPaciente,
+        canActivate: [roleGuard],
+        data: { roles: ADMIN_RECEPCAO },
+      },
+      {
+        path: 'profissionais',
+        component: Profissionais,
+        canActivate: [roleGuard],
+        data: { roles: ADMIN_RECEPCAO },
+      },
+      {
+        path: 'profissionais/novo',
+        component: CadastroProfissional,
+        canActivate: [roleGuard],
+        data: { roles: ADMIN },
+      },
+      {
+        path: 'profissionais/detalhes/:id',
+        component: DetalheProfissional,
+        canActivate: [roleGuard],
+        data: { roles: ADMIN_RECEPCAO },
+      },
+      {
+        path: 'profissionais/editar/:id',
+        component: CadastroProfissional,
+        canActivate: [roleGuard],
+        data: { roles: ADMIN },
+      },
+      { path: 'grupos', component: AgendamentoGrupo },
       { path: 'grupos/novo', component: NovoAgendamentoGrupo },
       { path: 'relatorios', component: Relatorios },
     ],

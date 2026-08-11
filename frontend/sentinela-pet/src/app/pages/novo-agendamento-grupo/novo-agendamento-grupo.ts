@@ -27,6 +27,8 @@ const RECORRENCIAS = [
   { valor: 'MENSAL', label: 'Mensal' },
 ];
 
+const DELAY_NAVEGACAO_APOS_SUCESSO_MS = 1500;
+
 @Component({
   selector: 'app-novo-agendamento-grupo',
   standalone: true,
@@ -66,6 +68,7 @@ export class NovoAgendamentoGrupo implements OnInit {
 
   salvando = false;
   erroGeral: string | null = null;
+  mensagemSucesso: string | null = null;
   errosPorCampo: Record<string, string> = {};
 
   constructor(
@@ -132,6 +135,7 @@ export class NovoAgendamentoGrupo implements OnInit {
   trocarModo(novoModo: Modo): void {
     this.modo = novoModo;
     this.erroGeral = null;
+    this.mensagemSucesso = null;
     this.errosPorCampo = {};
     this.limparDataHorario();
 
@@ -233,6 +237,7 @@ export class NovoAgendamentoGrupo implements OnInit {
     if (!this.podeConfirmar) return;
 
     this.erroGeral = null;
+    this.mensagemSucesso = null;
     this.errosPorCampo = {};
     this.salvando = true;
 
@@ -251,10 +256,7 @@ export class NovoAgendamentoGrupo implements OnInit {
       };
 
       this.grupoService.criarGrupo(payload).subscribe({
-        next: () => {
-          this.salvando = false;
-          this.router.navigate(['/grupos']);
-        },
+        next: () => this.tratarSucesso('Grupo criado com sucesso!'),
         error: (erro: HttpErrorResponse) => {
           this.salvando = false;
           this.tratarErro(erro);
@@ -271,15 +273,36 @@ export class NovoAgendamentoGrupo implements OnInit {
     };
 
     this.grupoService.criarProximaSessao(payload).subscribe({
-      next: () => {
-        this.salvando = false;
-        this.router.navigate(['/grupos']);
-      },
+      next: () => this.tratarSucesso('Sessão agendada com sucesso!'),
       error: (erro: HttpErrorResponse) => {
         this.salvando = false;
         this.tratarErro(erro);
       },
     });
+  }
+
+  private tratarSucesso(mensagem: string): void {
+    this.salvando = false;
+    this.mensagemSucesso = mensagem;
+    this.resetarFormulario();
+
+    // Dá tempo do usuário ver a confirmação antes de navegar para a listagem.
+    setTimeout(() => {
+      this.router.navigate(['/grupos']);
+    }, DELAY_NAVEGACAO_APOS_SUCESSO_MS);
+  }
+
+  private resetarFormulario(): void {
+    this.tema = '';
+    this.coordenadorId = null;
+    this.recorrencia = null;
+    this.dataSessao = '';
+    this.horario = '';
+    this.grupoSelecionadoId = null;
+    this.grupoSelecionado = null;
+    this.participantesSelecionados = [];
+    this.termoPesquisaPaciente = '';
+    this.resultadosPacientes = [];
   }
 
   private tratarErro(erro: HttpErrorResponse): void {

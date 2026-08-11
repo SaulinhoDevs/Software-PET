@@ -11,16 +11,20 @@
     {{ erroGeral }}
   </div>
 
+  <div class="alert-sucesso" *ngIf="mensagemSucesso">
+    {{ mensagemSucesso }}
+  </div>
+
   <!-- ALTERNADOR DE MODO -->
   <section class="detail-card">
     <div class="modo-toggle">
       <button type="button" class="modo-btn" [class.modo-ativo]="modo === 'NOVO_GRUPO'"
-        (click)="trocarModo('NOVO_GRUPO')">
+        (click)="trocarModo('NOVO_GRUPO')" [disabled]="salvando">
         + Criar Novo Grupo
       </button>
 
       <button type="button" class="modo-btn" [class.modo-ativo]="modo === 'GRUPO_EXISTENTE'"
-        (click)="trocarModo('GRUPO_EXISTENTE')">
+        (click)="trocarModo('GRUPO_EXISTENTE')" [disabled]="salvando">
         Agendar Sessão de Grupo Existente
       </button>
     </div>
@@ -33,15 +37,15 @@
     <div class="form-grid">
       <div class="form-group form-group-large">
         <label>Tema do grupo</label>
-        <input type="text" [(ngModel)]="tema" placeholder="Ex: Ansiedade e regulação emocional" />
+        <input type="text" [(ngModel)]="tema" placeholder="Ex: Ansiedade e regulação emocional" [disabled]="salvando" />
         <small *ngIf="errosPorCampo['tema']" class="erro-campo">{{ errosPorCampo['tema'] }}</small>
       </div>
 
       <div class="form-group">
         <label>Coordenador</label>
-        <select [(ngModel)]="coordenadorId">
+        <select [(ngModel)]="coordenadorId" [disabled]="salvando">
           <option [ngValue]="null" disabled>Selecione o coordenador</option>
-          <option *ngFor="let c of coordenadores" [value]="c.idPublico">{{ c.nome }}</option>
+          <option *ngFor="let c of coordenadores" [ngValue]="c.idPublico">{{ c.nome }}</option>
         </select>
         <small *ngIf="errosPorCampo['coordenadorId']" class="erro-campo">
           {{ errosPorCampo['coordenadorId'] }}
@@ -50,9 +54,9 @@
 
       <div class="form-group">
         <label>Recorrência</label>
-        <select [(ngModel)]="recorrencia">
+        <select [(ngModel)]="recorrencia" [disabled]="salvando">
           <option [ngValue]="null" disabled>Selecione a recorrência</option>
-          <option *ngFor="let r of recorrencias" [value]="r.valor">{{ r.label }}</option>
+          <option *ngFor="let r of recorrencias" [ngValue]="r.valor">{{ r.label }}</option>
         </select>
         <small *ngIf="errosPorCampo['recorrencia']" class="erro-campo">
           {{ errosPorCampo['recorrencia'] }}
@@ -61,7 +65,7 @@
 
       <div class="form-group">
         <label>Data da primeira sessão</label>
-        <input type="date" [(ngModel)]="dataSessao" />
+        <input type="date" [(ngModel)]="dataSessao" [disabled]="salvando" />
         <small *ngIf="errosPorCampo['dataPrimeiraSessao']" class="erro-campo">
           {{ errosPorCampo['dataPrimeiraSessao'] }}
         </small>
@@ -69,7 +73,7 @@
 
       <div class="form-group">
         <label>Horário</label>
-        <input type="time" [(ngModel)]="horario" />
+        <input type="time" [(ngModel)]="horario" [disabled]="salvando" />
         <small *ngIf="errosPorCampo['horario']" class="erro-campo">{{ errosPorCampo['horario'] }}</small>
       </div>
     </div>
@@ -79,10 +83,16 @@
   <section class="detail-card" *ngIf="modo === 'GRUPO_EXISTENTE'">
     <h2 class="detail-card-title">1. Selecione o Grupo</h2>
 
-    <div class="form-group">
-      <select [(ngModel)]="grupoSelecionadoId" (change)="onGrupoSelecionado()">
+    <p class="empty-inline" *ngIf="carregandoGrupos">Carregando grupos...</p>
+
+    <p class="empty-inline" *ngIf="!carregandoGrupos && grupos.length === 0">
+      Nenhum grupo cadastrado ainda. Crie um novo grupo na outra aba.
+    </p>
+
+    <div class="form-group" *ngIf="!carregandoGrupos && grupos.length > 0">
+      <select [(ngModel)]="grupoSelecionadoId" (change)="onGrupoSelecionado()" [disabled]="salvando">
         <option [ngValue]="null" disabled>Selecione um grupo</option>
-        <option *ngFor="let g of grupos" [value]="g.id">{{ g.tema }} — {{ labelEnum(g.recorrencia) }}</option>
+        <option *ngFor="let g of grupos" [ngValue]="g.id">{{ g.tema }} — {{ labelEnum(g.recorrencia) }}</option>
       </select>
     </div>
 
@@ -103,7 +113,7 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Data da sessão</label>
-          <input type="date" [(ngModel)]="dataSessao" />
+          <input type="date" [(ngModel)]="dataSessao" [disabled]="salvando" />
           <small *ngIf="errosPorCampo['dataSessao']" class="erro-campo">
             {{ errosPorCampo['dataSessao'] }}
           </small>
@@ -111,7 +121,7 @@
 
         <div class="form-group">
           <label>Horário</label>
-          <input type="time" [(ngModel)]="horario" />
+          <input type="time" [(ngModel)]="horario" [disabled]="salvando" />
         </div>
       </div>
     </ng-container>
@@ -125,7 +135,7 @@
     </p>
 
     <input type="text" class="search-input" placeholder="Digite o nome do paciente" [(ngModel)]="termoPesquisaPaciente"
-      (input)="pesquisarPaciente()" />
+      (input)="pesquisarPaciente()" [disabled]="salvando" />
 
     <div class="lista-itens" *ngIf="resultadosPacientes.length > 0">
       <div class="item-linha item-clicavel" *ngFor="let p of resultadosPacientes" (click)="adicionarParticipante(p)">
@@ -144,7 +154,7 @@
     <div class="participantes-selecionados" *ngIf="participantesSelecionados.length > 0">
       <div class="participante-chip" *ngFor="let p of participantesSelecionados">
         {{ p.nome }}
-        <button type="button" class="chip-remover" (click)="removerParticipante(p)">×</button>
+        <button type="button" class="chip-remover" (click)="removerParticipante(p)" [disabled]="salvando">×</button>
       </div>
     </div>
 
