@@ -20,7 +20,7 @@ import { AgendamentosPaciente } from './pages/agendamentos-paciente/agendamentos
 import { Relatorios } from './pages/relatorios/relatorios';
 import { roleGuard } from './auth/role-guard';
 import { NovoAgendamentoGrupo } from './pages/novo-agendamento-grupo/novo-agendamento-grupo';
-import { AgendamentoGrupo } from './pages/agendamento-grupo/agendamento-grupo';
+import { GruposTerapeuticos } from './pages/grupos-terapeuticos/grupos-terapeuticos';
 
 const TODOS = ['ADMINISTRADOR', 'RECEPCAO', 'PROFISSIONAL'];
 const ADMIN_RECEPCAO = ['ADMINISTRADOR', 'RECEPCAO'];
@@ -105,8 +105,18 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ADMIN },
       },
-      { path: 'grupos', component: AgendamentoGrupo },
-      { path: 'grupos/novo', component: NovoAgendamentoGrupo },
+      {
+        path: 'grupos-terapeuticos',
+        component: GruposTerapeuticos,
+        canActivate: [roleGuard],
+        data: { roles: TODOS },
+      },
+      {
+        path: 'grupos-terapeuticos/novo',
+        component: NovoAgendamentoGrupo,
+        canActivate: [roleGuard],
+        data: { roles: TODOS },
+      },
       { path: 'relatorios', component: Relatorios },
     ],
   },

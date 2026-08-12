@@ -21,7 +21,7 @@ export class Sidebar implements OnInit {
     { label: 'Agenda', route: '/agenda', icon: 'calendar_today' },
     { label: 'Pacientes', route: '/pacientes', icon: 'groups' },
     { label: 'Profissionais', route: '/profissionais', icon: 'person_add' },
-    { label: 'Grupo Terapêutico', route: '/grupos', icon: 'diversity_3' },
+    { label: 'Grupo Terapêutico', route: '/grupos-terapeuticos', icon: 'diversity_3' },
     { label: 'Relatórios', route: '/relatorios', icon: 'clinical_notes' },
   ];
 
@@ -30,9 +30,10 @@ export class Sidebar implements OnInit {
   ngOnInit(): void {
     this.usuarioLogadoService.obterUsuarioLogado().subscribe({
       next: (usuario) => {
-        this.menuItems = usuario.tipoUsuario === 'PROFISSIONAL'
-          ? this.todosMenuItems.filter((item) => item.route !== '/profissionais')
-          : [...this.todosMenuItems];
+        this.menuItems =
+          usuario.tipoUsuario === 'PROFISSIONAL'
+            ? this.todosMenuItems.filter((item) => item.route !== '/profissionais')
+            : [...this.todosMenuItems];
       },
     });
   }

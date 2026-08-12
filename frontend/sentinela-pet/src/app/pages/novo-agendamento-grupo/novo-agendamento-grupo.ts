@@ -87,7 +87,7 @@ export class NovoAgendamentoGrupo implements OnInit {
     if (grupoIdParam) {
       this.modo = 'GRUPO_EXISTENTE';
       this.grupoSelecionadoId = Number(grupoIdParam);
-      // A pré-seleção real acontece assim que carregarGrupos() terminar (ver método abaixo)
+      // A pré-seleção real acontece assim que carregarGrupos() terminar.
     }
   }
 
@@ -158,7 +158,6 @@ export class NovoAgendamentoGrupo implements OnInit {
     this.horario = grupo.horarioPadrao?.slice(0, 5) ?? '';
 
     if (grupo.recorrencia === 'UNICA') {
-      // Grupo de sessão única não tem "próxima sessão" automática — usuário escolhe a data manualmente.
       this.dataSessao = '';
       return;
     }
@@ -181,8 +180,6 @@ export class NovoAgendamentoGrupo implements OnInit {
     this.horario = '';
   }
 
-  // ---------- Participantes ----------
-
   pesquisarPaciente(): void {
     const termo = this.termoPesquisaPaciente.trim();
 
@@ -195,8 +192,12 @@ export class NovoAgendamentoGrupo implements OnInit {
 
     this.pacienteService.buscarPorNome(termo).subscribe({
       next: (pacientes) => {
-        const idsJaSelecionados = new Set(this.participantesSelecionados.map((p) => p.idPublico));
-        this.resultadosPacientes = pacientes.filter((p) => !idsJaSelecionados.has(p.idPublico));
+        const idsJaSelecionados = new Set(
+          this.participantesSelecionados.map((p) => p.idPublico),
+        );
+        this.resultadosPacientes = pacientes.filter(
+          (p) => !idsJaSelecionados.has(p.idPublico),
+        );
         this.buscandoPaciente = false;
       },
       error: () => {
@@ -219,8 +220,6 @@ export class NovoAgendamentoGrupo implements OnInit {
       (p) => p.idPublico !== paciente.idPublico,
     );
   }
-
-  // ---------- Envio ----------
 
   get podeConfirmar(): boolean {
     if (this.salvando) return false;
@@ -286,9 +285,8 @@ export class NovoAgendamentoGrupo implements OnInit {
     this.mensagemSucesso = mensagem;
     this.resetarFormulario();
 
-    // Dá tempo do usuário ver a confirmação antes de navegar para a listagem.
     setTimeout(() => {
-      this.router.navigate(['/grupos']);
+      this.router.navigate(['/grupos-terapeuticos']);
     }, DELAY_NAVEGACAO_APOS_SUCESSO_MS);
   }
 
@@ -330,7 +328,7 @@ export class NovoAgendamentoGrupo implements OnInit {
   }
 
   cancelar(): void {
-    this.router.navigate(['/grupos']);
+    this.router.navigate(['/grupos-terapeuticos']);
   }
 
   labelEnum(valor: string | undefined): string {
