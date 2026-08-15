@@ -7,19 +7,12 @@ import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.pet.buscaativa.entities.dto.AdicionarParticipanteDTO;
 import com.pet.buscaativa.entities.dto.CriarGrupoDTO;
 import com.pet.buscaativa.entities.dto.GrupoTerapeuticoDTO;
+import com.pet.buscaativa.entities.dto.RegistrarPresencaGrupoDTO;
 import com.pet.buscaativa.entities.dto.NovaSessaoDTO;
 import com.pet.buscaativa.entities.dto.SessaoGrupoDTO;
 import com.pet.buscaativa.entities.enums.StatusSessaoGrupo;
@@ -79,6 +72,13 @@ public class GrupoTerapeuticoController {
     public ResponseEntity<SessaoGrupoDTO> removerParticipante(@PathVariable Long sessaoId,
                                                               @PathVariable UUID pacienteId) {
         return ResponseEntity.ok(grupoService.removerParticipante(sessaoId, pacienteId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @PatchMapping("/sessoes/{sessaoId}/participantes/{pacienteId}/presenca")
+    public ResponseEntity<SessaoGrupoDTO> registrarPresenca(@PathVariable Long sessaoId,
+            @PathVariable UUID pacienteId, @RequestBody @Valid RegistrarPresencaGrupoDTO dto) {
+        return ResponseEntity.ok(grupoService.registrarPresenca(sessaoId, pacienteId, dto));
     }
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO')")

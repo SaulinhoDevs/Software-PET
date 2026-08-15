@@ -1,67 +1,86 @@
-import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { Subject, catchError, debounceTime, distinctUntilChanged, finalize, map, of, switchMap, takeUntil } from 'rxjs';
-
-import { CriarGrupoPayload, GrupoService } from '../../services/grupo-service';
-import { PacientePayload, PacienteService } from '../../services/paciente/paciente-service';
-import { ProfissionalPayload, ProfissionalService } from '../../services/profissional/profissional-service';
-
-type RecorrenciaGrupo = 'UNICA' | 'SEMANAL' | 'QUINZENAL' | 'MENSAL';
+import { CommonModule } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
+import { Component, OnDestroy, OnInit, inject } from "@angular/core";
+import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Router, RouterLink } from "@angular/router";
+import {
+  Subject,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  of,
+  switchMap,
+  takeUntil,
+} from "rxjs";
+import {
+  CriarGrupoPayload,
+  GrupoTerapeuticoService,
+  RecorrenciaGrupo,
+} from "../../services/grupo-terapeutico-service";
+import {
+  PacientePayload,
+  PacienteService,
+} from "../../services/paciente/paciente-service";
+import {
+  ProfissionalPayload,
+  ProfissionalService,
+} from "../../services/profissional/profissional-service";
 
 @Component({
-  selector: 'app-agendar-grupo-terapeutico',
+  selector: "app-agendar-grupo-terapeutico",
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './agendar-grupo-terapeutico.html',
-  styleUrl: './agendar-grupo-terapeutico.css',
+  templateUrl: "./agendar-grupo-terapeutico.html",
+  styleUrl: "./agendar-grupo-terapeutico.css",
 })
 export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
 
   readonly recorrencias: { valor: RecorrenciaGrupo; label: string }[] = [
-    { valor: 'UNICA', label: 'Única' },
-    { valor: 'SEMANAL', label: 'Semanal' },
-    { valor: 'QUINZENAL', label: 'Quinzenal' },
-    { valor: 'MENSAL', label: 'Mensal' },
+    { valor: "UNICA", label: "Única" },
+    { valor: "SEMANAL", label: "Semanal" },
+    { valor: "QUINZENAL", label: "Quinzenal" },
+    { valor: "MENSAL", label: "Mensal" },
   ];
 
   readonly dataMinima = this.hoje();
 
   readonly form = this.fb.nonNullable.group({
-    tema: ['', [Validators.required, Validators.maxLength(150)]],
-    coordenadorId: ['', Validators.required],
-    dataPrimeiraSessao: ['', Validators.required],
-    horario: ['', Validators.required],
-    recorrencia: ['UNICA' as RecorrenciaGrupo, Validators.required],
+    tema: ["", [Validators.required, Validators.maxLength(150)]],
+    coordenadorId: ["", Validators.required],
+    dataPrimeiraSessao: ["", Validators.required],
+    horario: ["", Validators.required],
+    recorrencia: ["UNICA" as RecorrenciaGrupo, Validators.required],
+    dataFimRecorrencia: [""],
   });
 
   profissionais: ProfissionalPayload[] = [];
   participantes: PacientePayload[] = [];
   resultados: PacientePayload[] = [];
   pacienteSelecionado: PacientePayload | null = null;
-  termoPesquisa = '';
+  termoPesquisa = "";
   buscando = false;
   pesquisaRealizada = false;
   enviando = false;
-  erroGeral = '';
-  mensagemPesquisa = '';
+  erroGeral = "";
+  mensagemPesquisa = "";
 
   private readonly pesquisa$ = new Subject<string>();
   private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private readonly grupos: GrupoService,
+    private readonly grupos: GrupoTerapeuticoService,
     private readonly pacientes: PacienteService,
     private readonly profissionaisService: ProfissionalService,
-    private readonly router: Router,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
     this.carregarProfissionais();
     this.configurarPesquisa();
+    this.configurarRecorrencia();
   }
 
   ngOnDestroy(): void {
@@ -70,21 +89,35 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
   }
 
   get coordenadorNome(): string {
-    return this.profissionais.find(
-      (p) => p.idPublico === this.form.controls.coordenadorId.value,
-    )?.nome || 'Não selecionado';
+    return (
+      this.profissionais.find(
+        (p) => p.idPublico === this.form.controls.coordenadorId.value
+      )?.nome || "Não selecionado"
+    );
   }
 
   get recorrenciaLabel(): string {
-    return this.recorrencias.find(
-      (r) => r.valor === this.form.controls.recorrencia.value,
-    )?.label || 'Não definida';
+    return (
+      this.recorrencias.find(
+        (r) => r.valor === this.form.controls.recorrencia.value
+      )?.label || "Não definida"
+    );
   }
 
   get primeiraSessaoResumo(): string {
     const d = this.form.controls.dataPrimeiraSessao.value;
     const h = this.form.controls.horario.value;
-    return d ? `${this.formatarData(d)}${h ? ' • ' + h : ''}` : 'Não definida';
+    return d ? `${this.formatarData(d)}${h ? " • " + h : ""}` : "Não definida";
+  }
+
+  get recorrenciaEhUnica(): boolean {
+    return this.form.controls.recorrencia.value === "UNICA";
+  }
+
+  get fimRecorrenciaResumo(): string {
+    if (this.recorrenciaEhUnica) return "Não se aplica";
+    const data = this.form.controls.dataFimRecorrencia.value;
+    return data ? this.formatarData(data) : "Não definido";
   }
 
   campoInvalido(nome: keyof typeof this.form.controls): boolean {
@@ -100,7 +133,7 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
   pesquisar(termo: string): void {
     this.termoPesquisa = termo;
     this.pacienteSelecionado = null;
-    this.mensagemPesquisa = '';
+    this.mensagemPesquisa = "";
     this.pesquisa$.next(termo);
   }
 
@@ -109,33 +142,29 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
     this.termoPesquisa = p.nome;
     this.resultados = [];
     this.mensagemPesquisa =
-      p.statusPaciente !== 'ATIVO'
-        ? 'Este paciente está inativo e não pode ser incluído.'
-        : '';
+      p.statusPaciente !== "ATIVO"
+        ? "Este paciente está inativo e não pode ser incluído."
+        : "";
   }
 
   adicionarPaciente(): void {
     const p = this.pacienteSelecionado;
-
     if (!p?.idPublico) {
-      this.mensagemPesquisa = 'Selecione um paciente nos resultados da busca.';
+      this.mensagemPesquisa = "Selecione um paciente nos resultados da busca.";
       return;
     }
-
-    if (p.statusPaciente !== 'ATIVO') {
-      this.mensagemPesquisa = 'Somente pacientes ativos podem ser incluídos.';
+    if (p.statusPaciente !== "ATIVO") {
+      this.mensagemPesquisa = "Somente pacientes ativos podem ser incluídos.";
       return;
     }
-
     if (this.participantes.some((item) => item.idPublico === p.idPublico)) {
-      this.mensagemPesquisa = 'Este paciente já foi adicionado.';
+      this.mensagemPesquisa = "Este paciente já foi adicionado.";
       return;
     }
-
     this.participantes = [...this.participantes, p];
-    this.termoPesquisa = '';
+    this.termoPesquisa = "";
     this.pacienteSelecionado = null;
-    this.mensagemPesquisa = '';
+    this.mensagemPesquisa = "";
     this.pesquisaRealizada = false;
   }
 
@@ -144,11 +173,12 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
   }
 
   submit(): void {
-    this.erroGeral = '';
+    this.erroGeral = "";
+    this.validarPeriodoRecorrencia();
     this.form.markAllAsTouched();
 
     if (this.form.invalid) {
-      this.erroGeral = 'Revise os campos obrigatórios antes de confirmar.';
+      this.erroGeral = "Revise os campos obrigatórios antes de confirmar.";
       return;
     }
 
@@ -158,45 +188,89 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
     }
 
     const value = this.form.getRawValue();
-
     const payload: CriarGrupoPayload = {
       tema: value.tema.trim(),
       coordenadorId: value.coordenadorId,
       recorrencia: value.recorrencia,
       dataPrimeiraSessao: value.dataPrimeiraSessao,
+      dataFimRecorrencia:
+        value.recorrencia === "UNICA" ? null : value.dataFimRecorrencia,
       horario: value.horario,
       participantesIds: this.participantes
-        .map((p) => p.idPublico)
-        .filter((id): id is string => Boolean(id)),
+        .map((p) => p.idPublico!)
+        .filter(Boolean),
     };
 
     this.enviando = true;
-
     this.grupos
-      .criarGrupo(payload)
+      .criar(payload)
       .pipe(finalize(() => (this.enviando = false)))
       .subscribe({
         next: () =>
-          this.router.navigate(['/grupos-terapeuticos'], {
+          this.router.navigate(["/grupos-terapeuticos"], {
             queryParams: { data: value.dataPrimeiraSessao },
           }),
         error: (e: HttpErrorResponse) => this.tratarErro(e),
       });
   }
 
-  documento(p: PacientePayload): string {
-    const cpf = (p.cpf || '').replace(/\D/g, '');
-    if (cpf.length === 11) {
-      return `CPF •••.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-••`;
+  private configurarRecorrencia(): void {
+    this.form.controls.recorrencia.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((recorrencia) => {
+        const fim = this.form.controls.dataFimRecorrencia;
+
+        if (recorrencia === "UNICA") {
+          fim.clearValidators();
+          fim.setValue("", { emitEvent: false });
+          fim.setErrors(null);
+        } else {
+          fim.setValidators(Validators.required);
+        }
+
+        fim.updateValueAndValidity({ emitEvent: false });
+        this.validarPeriodoRecorrencia();
+      });
+
+    this.form.controls.dataPrimeiraSessao.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.validarPeriodoRecorrencia());
+
+    this.form.controls.dataFimRecorrencia.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.validarPeriodoRecorrencia());
+  }
+
+  private validarPeriodoRecorrencia(): void {
+    const recorrencia = this.form.controls.recorrencia.value;
+    const primeira = this.form.controls.dataPrimeiraSessao.value;
+    const fim = this.form.controls.dataFimRecorrencia;
+
+    if (recorrencia === "UNICA") {
+      fim.setErrors(null);
+      return;
     }
-    const cns = (p.cns || '').replace(/\D/g, '');
-    return `CNS •••••••••••${cns.slice(-4)}`;
+
+    const valorFim = fim.value;
+
+    if (!valorFim) {
+      fim.setErrors({ required: true });
+      return;
+    }
+
+    if (primeira && valorFim < primeira) {
+      fim.setErrors({ anteriorPrimeiraSessao: true });
+      return;
+    }
+
+    fim.setErrors(null);
   }
 
   private carregarProfissionais(): void {
     this.profissionaisService.listarParaSelecao().subscribe({
       next: (p) => (this.profissionais = p),
-      error: () => (this.erroGeral = 'Não foi possível carregar os coordenadores.'),
+      error: () =>
+        (this.erroGeral = "Não foi possível carregar os coordenadores."),
     });
   }
 
@@ -207,9 +281,8 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
         debounceTime(350),
         distinctUntilChanged(),
         switchMap((termo) => {
-          const digitos = termo.replace(/\D/g, '');
+          const digitos = termo.replace(/\D/g, "");
           const temLetras = /[A-Za-zÀ-ÿ]/.test(termo);
-
           if (
             (temLetras && termo.length < 3) ||
             (!temLetras && ![11, 15].includes(digitos.length))
@@ -218,53 +291,58 @@ export class AgendarGrupoTerapeutico implements OnInit, OnDestroy {
             this.pesquisaRealizada = false;
             return of<PacientePayload[]>([]);
           }
-
           this.buscando = true;
           this.pesquisaRealizada = false;
-
           const req = temLetras
             ? this.pacientes.buscarPorNome(termo)
             : digitos.length === 11
-              ? this.pacientes.buscarPorCpf(digitos).pipe(map((p) => [p]))
-              : this.pacientes.buscarPorCns(digitos).pipe(map((p) => [p]));
-
+            ? this.pacientes.buscarPorCpf(digitos).pipe(map((p) => [p]))
+            : this.pacientes.buscarPorCns(digitos).pipe(map((p) => [p]));
           return req.pipe(
             catchError(() => of<PacientePayload[]>([])),
             finalize(() => {
               this.buscando = false;
               this.pesquisaRealizada = true;
-            }),
+            })
           );
         }),
-        takeUntil(this.destroy$),
+        takeUntil(this.destroy$)
       )
       .subscribe((r) => (this.resultados = r));
   }
 
   private tratarErro(e: HttpErrorResponse): void {
     const mensagens: Record<number, string> = {
-      400: 'Há dados inválidos no formulário.',
-      403: 'Você não possui permissão para agendar este grupo.',
-      404: 'Coordenador ou paciente não encontrado.',
-      409: 'Um participante já está inscrito em outro grupo na mesma data e horário.',
-      422: 'Não foi possível validar os dados informados.',
+      400: "Há dados inválidos no formulário.",
+      403: "Você não possui permissão para agendar este grupo.",
+      404: "Coordenador ou paciente não encontrado.",
+      409: "Um participante já está inscrito em outro grupo na mesma data e horário.",
+      422: "Não foi possível validar os dados informados.",
     };
-
     this.erroGeral =
       e.error?.message ||
       mensagens[e.status] ||
-      'Não foi possível agendar o grupo. Tente novamente.';
+      "Não foi possível agendar o grupo. Tente novamente.";
   }
 
   private formatarData(data: string): string {
-    const [a, m, d] = data.split('-').map(Number);
-    return new Intl.DateTimeFormat('pt-BR').format(new Date(a, m - 1, d));
+    const [a, m, d] = data.split("-").map(Number);
+    return new Intl.DateTimeFormat("pt-BR").format(new Date(a, m - 1, d));
   }
 
   private hoje(): string {
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-      d.getDate(),
-    ).padStart(2, '0')}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  documento(p: PacientePayload): string {
+    const cpf = (p.cpf || "").replace(/\D/g, "");
+    if (cpf.length === 11)
+      return `CPF •••.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-••`;
+    const cns = (p.cns || "").replace(/\D/g, "");
+    return `CNS •••••••••••${cns.slice(-4)}`;
   }
 }
