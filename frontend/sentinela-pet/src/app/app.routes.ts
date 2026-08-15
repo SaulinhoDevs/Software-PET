@@ -19,7 +19,7 @@ import { HistoricoPaciente } from './pages/historico-paciente/historico-paciente
 import { AgendamentosPaciente } from './pages/agendamentos-paciente/agendamentos-paciente';
 import { Relatorios } from './pages/relatorios/relatorios';
 import { roleGuard } from './auth/role-guard';
-import { NovoAgendamentoGrupo } from './pages/novo-agendamento-grupo/novo-agendamento-grupo';
+import { AgendarGrupoTerapeutico } from './pages/agendar-grupo-terapeutico/agendar-grupo-terapeutico';
 import { GruposTerapeuticos } from './pages/grupos-terapeuticos/grupos-terapeuticos';
 
 const TODOS = ['ADMINISTRADOR', 'RECEPCAO', 'PROFISSIONAL'];
@@ -28,13 +28,11 @@ const ADMIN = ['ADMINISTRADOR'];
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-
   {
     path: '',
     component: AuthLayout,
     children: [{ path: 'login', component: Login, canActivate: [loginGuard] }],
   },
-
   {
     path: '',
     component: MainLayout,
@@ -43,80 +41,20 @@ export const routes: Routes = [
       { path: 'inicio', component: Inicio },
       { path: 'painel', component: Painel },
       { path: 'agenda', component: Agenda },
-      {
-        path: 'agenda/configuracoes',
-        component: ConfiguracaoAgenda,
-        canActivate: [roleGuard],
-        data: { roles: TODOS },
-      },
+      { path: 'agenda/configuracoes', component: ConfiguracaoAgenda, canActivate: [roleGuard], data: { roles: TODOS } },
       { path: 'agenda/novo', component: NovoAgendamento },
       { path: 'pacientes', component: Pacientes, canActivate: [roleGuard], data: { roles: TODOS } },
-      {
-        path: 'pacientes/detalhes/:id',
-        component: DetalhePaciente,
-        canActivate: [roleGuard],
-        data: { roles: TODOS },
-      },
-      {
-        path: 'pacientes/detalhes/:id/historico',
-        component: HistoricoPaciente,
-        canActivate: [roleGuard],
-        data: { roles: TODOS },
-      },
-      {
-        path: 'pacientes/detalhes/:id/agendamentos',
-        component: AgendamentosPaciente,
-        canActivate: [roleGuard],
-        data: { roles: TODOS },
-      },
-      {
-        path: 'pacientes/novo',
-        component: CadastroPaciente,
-        canActivate: [roleGuard],
-        data: { roles: ADMIN_RECEPCAO },
-      },
-      {
-        path: 'pacientes/editar/:id',
-        component: CadastroPaciente,
-        canActivate: [roleGuard],
-        data: { roles: ADMIN_RECEPCAO },
-      },
-      {
-        path: 'profissionais',
-        component: Profissionais,
-        canActivate: [roleGuard],
-        data: { roles: ADMIN_RECEPCAO },
-      },
-      {
-        path: 'profissionais/novo',
-        component: CadastroProfissional,
-        canActivate: [roleGuard],
-        data: { roles: ADMIN },
-      },
-      {
-        path: 'profissionais/detalhes/:id',
-        component: DetalheProfissional,
-        canActivate: [roleGuard],
-        data: { roles: ADMIN_RECEPCAO },
-      },
-      {
-        path: 'profissionais/editar/:id',
-        component: CadastroProfissional,
-        canActivate: [roleGuard],
-        data: { roles: ADMIN },
-      },
-      {
-        path: 'grupos-terapeuticos',
-        component: GruposTerapeuticos,
-        canActivate: [roleGuard],
-        data: { roles: TODOS },
-      },
-      {
-        path: 'grupos-terapeuticos/novo',
-        component: NovoAgendamentoGrupo,
-        canActivate: [roleGuard],
-        data: { roles: TODOS },
-      },
+      { path: 'pacientes/detalhes/:id', component: DetalhePaciente, canActivate: [roleGuard], data: { roles: TODOS } },
+      { path: 'pacientes/detalhes/:id/historico', component: HistoricoPaciente, canActivate: [roleGuard], data: { roles: TODOS } },
+      { path: 'pacientes/detalhes/:id/agendamentos', component: AgendamentosPaciente, canActivate: [roleGuard], data: { roles: TODOS } },
+      { path: 'pacientes/novo', component: CadastroPaciente, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
+      { path: 'pacientes/editar/:id', component: CadastroPaciente, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
+      { path: 'profissionais', component: Profissionais, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
+      { path: 'profissionais/novo', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
+      { path: 'profissionais/detalhes/:id', component: DetalheProfissional, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
+      { path: 'profissionais/editar/:id', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
+      { path: 'grupos-terapeuticos', component: GruposTerapeuticos, canActivate: [roleGuard], data: { roles: TODOS } },
+      { path: 'grupos-terapeuticos/novo', component: AgendarGrupoTerapeutico, canActivate: [roleGuard], data: { roles: TODOS } },
       { path: 'relatorios', component: Relatorios },
     ],
   },
