@@ -7,17 +7,17 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.pet.buscaativa.entities.Paciente;
-import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.dto.AlertaBuscaAtivaDTO;
 import com.pet.buscaativa.entities.dto.EncerramentoPacienteDTO;
 import com.pet.buscaativa.entities.dto.PacienteDTO;
-import com.pet.buscaativa.entities.dto.PacienteDetalheDTO;
-import com.pet.buscaativa.entities.dto.PacienteListaResponseDTO;
 import com.pet.buscaativa.entities.dto.ReativacaoPacienteDTO;
+import com.pet.buscaativa.entities.dto.PacienteListaResponseDTO;
+import com.pet.buscaativa.entities.dto.PacienteDetalheDTO;
+import com.pet.buscaativa.entities.dto.AgendamentoDTO;
 import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
-import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
 import com.pet.buscaativa.entities.enums.TipoAcompanhamento;
+import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
 
 @Service
 public interface PacienteService {
@@ -56,5 +56,7 @@ public interface PacienteService {
             SituacaoAtendimento novoStatus, LocalDate dataAtendimento);
 
     void calcularEAtualizarRisco(Paciente paciente);
+
+    void recalcularAssiduidadePaciente(Paciente paciente);
 
 }

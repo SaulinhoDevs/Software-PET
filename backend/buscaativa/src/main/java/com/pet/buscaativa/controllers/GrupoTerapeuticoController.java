@@ -9,12 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.pet.buscaativa.entities.dto.AdicionarParticipanteDTO;
-import com.pet.buscaativa.entities.dto.CriarGrupoDTO;
-import com.pet.buscaativa.entities.dto.GrupoTerapeuticoDTO;
-import com.pet.buscaativa.entities.dto.RegistrarPresencaGrupoDTO;
-import com.pet.buscaativa.entities.dto.NovaSessaoDTO;
-import com.pet.buscaativa.entities.dto.SessaoGrupoDTO;
+import com.pet.buscaativa.entities.dto.*;
 import com.pet.buscaativa.entities.enums.StatusSessaoGrupo;
 import com.pet.buscaativa.services.GrupoTerapeuticoService;
 
@@ -38,6 +33,19 @@ public class GrupoTerapeuticoController {
     @GetMapping
     public ResponseEntity<List<GrupoTerapeuticoDTO>> listarGrupos() {
         return ResponseEntity.ok(grupoService.listarGrupos());
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO')")
+    @GetMapping("/{grupoId}")
+    public ResponseEntity<GrupoTerapeuticoDTO> buscarGrupo(@PathVariable Long grupoId) {
+        return ResponseEntity.ok(grupoService.buscarGrupo(grupoId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO')")
+    @PutMapping("/{grupoId}")
+    public ResponseEntity<GrupoTerapeuticoDTO> atualizarGrupo(@PathVariable Long grupoId,
+            @RequestBody @Valid AtualizarGrupoTerapeuticoDTO dto) {
+        return ResponseEntity.ok(grupoService.atualizarGrupo(grupoId, dto));
     }
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO')")
@@ -81,7 +89,54 @@ public class GrupoTerapeuticoController {
         return ResponseEntity.ok(grupoService.registrarPresenca(sessaoId, pacienteId, dto));
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @PostMapping("/sessoes/{sessaoId}/confirmacao-ocorrencia")
+    public ResponseEntity<SessaoGrupoDTO> confirmarOcorrencia(@PathVariable Long sessaoId,
+            @RequestBody @Valid ConfirmarOcorrenciaGrupoDTO dto) {
+        return ResponseEntity.ok(grupoService.confirmarOcorrencia(sessaoId, dto));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @PostMapping("/{grupoId}/inscricoes-retroativas")
+    public ResponseEntity<SessaoGrupoDTO> inscreverRetroativamente(@PathVariable Long grupoId,
+            @RequestBody @Valid InscricaoRetroativaGrupoDTO dto) {
+        return ResponseEntity.ok(grupoService.inscreverRetroativamente(grupoId, dto));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @GetMapping("/{grupoId}/sessoes-para-inscricao-retroativa")
+    public ResponseEntity<List<SessaoInscricaoRetroativaDTO>> sessoesParaInscricaoRetroativa(@PathVariable Long grupoId) {
+        return ResponseEntity.ok(grupoService.listarSessoesParaInscricaoRetroativa(grupoId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @PostMapping("/{grupoId}/inscricoes-futuras")
+    public ResponseEntity<SessaoGrupoDTO> inscreverEmSessoesFuturas(@PathVariable Long grupoId,
+            @RequestBody @Valid InscricaoFuturaGrupoDTO dto) {
+        return ResponseEntity.ok(grupoService.inscreverEmSessoesFuturas(grupoId, dto));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @DeleteMapping("/{grupoId}/participantes/{pacienteId}")
+    public ResponseEntity<Void> removerParticipanteDoGrupo(@PathVariable Long grupoId, @PathVariable UUID pacienteId) {
+        grupoService.removerParticipanteDoGrupo(grupoId, pacienteId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL', 'RECEPCAO')")
+    @GetMapping("/{grupoId}/participantes")
+    public ResponseEntity<List<ParticipanteGrupoDTO>> listarParticipantesDoGrupo(@PathVariable Long grupoId) {
+        return ResponseEntity.ok(grupoService.listarParticipantesDoGrupo(grupoId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
+    @PatchMapping("/sessoes/{sessaoId}/frequencias")
+    public ResponseEntity<SessaoGrupoDTO> corrigirFrequencias(@PathVariable Long sessaoId,
+            @RequestBody @Valid CorrigirFrequenciasGrupoDTO dto) {
+        return ResponseEntity.ok(grupoService.corrigirFrequencias(sessaoId, dto));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PROFISSIONAL')")
     @PatchMapping("/sessoes/{sessaoId}/status")
     public ResponseEntity<SessaoGrupoDTO> atualizarStatus(@PathVariable Long sessaoId,
                                                           @RequestParam StatusSessaoGrupo novoStatus,

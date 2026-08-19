@@ -19,8 +19,9 @@ import { HistoricoPaciente } from './pages/historico-paciente/historico-paciente
 import { AgendamentosPaciente } from './pages/agendamentos-paciente/agendamentos-paciente';
 import { Relatorios } from './pages/relatorios/relatorios';
 import { roleGuard } from './auth/role-guard';
-import { AgendarGrupoTerapeutico } from './pages/agendar-grupo-terapeutico/agendar-grupo-terapeutico';
 import { GruposTerapeuticos } from './pages/grupos-terapeuticos/grupos-terapeuticos';
+import { AgendarGrupoTerapeutico } from './pages/agendar-grupo-terapeutico/agendar-grupo-terapeutico';
+import { DetalheGrupoTerapeutico } from './pages/detalhe-grupo-terapeutico/detalhe-grupo-terapeutico';
 
 const TODOS = ['ADMINISTRADOR', 'RECEPCAO', 'PROFISSIONAL'];
 const ADMIN_RECEPCAO = ['ADMINISTRADOR', 'RECEPCAO'];
@@ -28,11 +29,13 @@ const ADMIN = ['ADMINISTRADOR'];
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
+
   {
     path: '',
     component: AuthLayout,
     children: [{ path: 'login', component: Login, canActivate: [loginGuard] }],
   },
+
   {
     path: '',
     component: MainLayout,
@@ -54,7 +57,9 @@ export const routes: Routes = [
       { path: 'profissionais/detalhes/:id', component: DetalheProfissional, canActivate: [roleGuard], data: { roles: ADMIN_RECEPCAO } },
       { path: 'profissionais/editar/:id', component: CadastroProfissional, canActivate: [roleGuard], data: { roles: ADMIN } },
       { path: 'grupos-terapeuticos', component: GruposTerapeuticos, canActivate: [roleGuard], data: { roles: TODOS } },
+      { path: 'grupos-terapeuticos/detalhes/:grupoId/sessao/:sessaoId', component: DetalheGrupoTerapeutico, canActivate: [roleGuard], data: { roles: TODOS } },
       { path: 'grupos-terapeuticos/novo', component: AgendarGrupoTerapeutico, canActivate: [roleGuard], data: { roles: TODOS } },
+      { path: 'grupos-terapeuticos/editar/:grupoId', component: AgendarGrupoTerapeutico, canActivate: [roleGuard], data: { roles: TODOS } },
       { path: 'relatorios', component: Relatorios },
     ],
   },
