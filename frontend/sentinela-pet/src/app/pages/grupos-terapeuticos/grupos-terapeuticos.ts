@@ -3,7 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { GrupoService, SessaoGrupoDTO } from '../../services/grupo-service';
+import {
+  GrupoTerapeuticoService,
+  SessaoGrupoPayload,
+} from '../../services/grupo-terapeutico-service';
 
 type StatusVisualSessao = 'AGENDADA' | 'EM_ANDAMENTO' | 'REALIZADA' | 'CANCELADA';
 
@@ -23,19 +26,19 @@ const STATUS_LABELS: Record<StatusVisualSessao, string> = {
 })
 export class GruposTerapeuticos implements OnInit {
   dataSelecionada = this.hoje();
-  sessoes: SessaoGrupoDTO[] = [];
-  proximasSessoes: SessaoGrupoDTO[] = [];
+  sessoes: SessaoGrupoPayload[] = [];
+  proximasSessoes: SessaoGrupoPayload[] = [];
   filtroStatus = '';
   filtroCoordenador = '';
   buscaTema = '';
   carregando = false;
   erro = '';
-  sessaoAberta: SessaoGrupoDTO | null = null;
+  sessaoAberta: SessaoGrupoPayload | null = null;
   acaoEmAndamento = false;
   erroModal = '';
 
   constructor(
-    private readonly service: GrupoService,
+    private readonly service: GrupoTerapeuticoService,
     private readonly route: ActivatedRoute,
   ) {}
 
@@ -76,7 +79,7 @@ export class GruposTerapeuticos implements OnInit {
     });
   }
 
-  get sessoesFiltradas(): SessaoGrupoDTO[] {
+  get sessoesFiltradas(): SessaoGrupoPayload[] {
     const termo = this.buscaTema.trim().toLocaleLowerCase('pt-BR');
 
     return this.sessoes.filter(
@@ -107,7 +110,7 @@ export class GruposTerapeuticos implements OnInit {
     return this.dataSelecionada === this.hoje();
   }
 
-  statusVisual(sessao: SessaoGrupoDTO): StatusVisualSessao {
+  statusVisual(sessao: SessaoGrupoPayload): StatusVisualSessao {
     if (
       sessao.status === 'AGENDADA' &&
       sessao.dataSessao === this.hoje() &&
@@ -119,11 +122,11 @@ export class GruposTerapeuticos implements OnInit {
     return sessao.status as StatusVisualSessao;
   }
 
-  labelStatus(sessao: SessaoGrupoDTO): string {
+  labelStatus(sessao: SessaoGrupoPayload): string {
     return STATUS_LABELS[this.statusVisual(sessao)];
   }
 
-  classeStatus(sessao: SessaoGrupoDTO): string {
+  classeStatus(sessao: SessaoGrupoPayload): string {
     return this.statusVisual(sessao).toLowerCase();
   }
 
@@ -146,7 +149,7 @@ export class GruposTerapeuticos implements OnInit {
     ).format(this.dataLocal(data));
   }
 
-  abrirSessao(sessao: SessaoGrupoDTO): void {
+  abrirSessao(sessao: SessaoGrupoPayload): void {
     this.sessaoAberta = sessao;
     this.erroModal = '';
   }
@@ -173,11 +176,11 @@ export class GruposTerapeuticos implements OnInit {
     });
   }
 
-  sessaoEditavel(sessao: SessaoGrupoDTO): boolean {
+  sessaoEditavel(sessao: SessaoGrupoPayload): boolean {
     return sessao.status === 'AGENDADA' && sessao.dataSessao >= this.hoje();
   }
 
-  private atualizarSessao(sessao: SessaoGrupoDTO): void {
+  private atualizarSessao(sessao: SessaoGrupoPayload): void {
     this.sessoes = this.sessoes.map((item) => (item.id === sessao.id ? sessao : item));
     this.sessaoAberta = sessao;
   }
