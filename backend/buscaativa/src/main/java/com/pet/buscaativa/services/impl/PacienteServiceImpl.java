@@ -1,32 +1,23 @@
 package com.pet.buscaativa.services.impl;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.pet.buscaativa.entities.Endereco;
 import com.pet.buscaativa.entities.Paciente;
 import com.pet.buscaativa.entities.Usuario;
-import com.pet.buscaativa.entities.dto.AgendamentoDTO;
-import com.pet.buscaativa.entities.dto.AlertaBuscaAtivaDTO;
-import com.pet.buscaativa.entities.dto.EncerramentoPacienteDTO;
-import com.pet.buscaativa.entities.dto.PacienteDTO;
-import com.pet.buscaativa.entities.dto.PacienteDetalheDTO;
-import com.pet.buscaativa.entities.dto.PacienteListaDTO;
-import com.pet.buscaativa.entities.dto.PacienteListaResponseDTO;
-import com.pet.buscaativa.entities.dto.PacienteResumoDTO;
-import com.pet.buscaativa.entities.dto.ProximoAgendamentoDTO;
-import com.pet.buscaativa.entities.dto.ReativacaoPacienteDTO;
+import com.pet.buscaativa.entities.dto.*;
 import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
 import com.pet.buscaativa.entities.enums.MotivoEncerramento;
 import com.pet.buscaativa.entities.enums.SituacaoAtendimento;
@@ -67,28 +58,37 @@ public class PacienteServiceImpl implements PacienteService{
     private final Clock clock;
 
     private final UsuarioRepository usuarioRepository;
+    private final EscopoUnidadeService escopoUnidadeService;
 
 
     @Override
+    @Transactional
     public PacienteDTO save(PacienteDTO pacienteDTO, boolean ignorarSimilaridade) {
         if (pacienteDTO.countFaltas() != null) {
             throw new ValidationException("O contador de faltas é calculado pelo sistema e não pode ser informado.");
         }
         
-        validarPacienteDuplicado(pacienteDTO, ignorarSimilaridade);
-
-        Paciente pacienteSalvar;
+        escopoUnidadeService.validarUnidadeConfigurada();
+        Paciente pacienteSalvar = null;
 
         if(pacienteDTO.idPublico() != null){
             pacienteSalvar = pacienteRepository.findByIdPublico(pacienteDTO.idPublico())
+                    .filter(escopoUnidadeService::pacientePertenceAoEscopo)
                     .orElseThrow(() -> new DatabaseException("Paciente não encontrado!"));
+        }
 
+        // Valida duplicidade antes de alterar a entidade gerenciada, como no fluxo existente.
+        validarPacienteDuplicado(pacienteDTO, ignorarSimilaridade);
+
+        if(pacienteSalvar != null){
             pacienteMapper.updatePacienteFromDTO(pacienteDTO, pacienteSalvar);
         }else{
             pacienteSalvar = pacienteMapper.toPacienteEntity(pacienteDTO);
 
             pacienteSalvar.setStatusPaciente(StatusPaciente.ATIVO);
         }
+
+        escopoUnidadeService.validarAcesso(pacienteSalvar);
 
         // O papel é permissão, não profissão: apenas RECEPCAO é inelegível.
         pacienteSalvar.setProfissionalReferencia(resolverProfissionalReferencia(pacienteDTO.profissionalReferenciaId()));
@@ -119,6 +119,7 @@ public class PacienteServiceImpl implements PacienteService{
     @Override
     public void inativarPaciente(UUID idPublico) {
         Paciente paciente = pacienteRepository.findByIdPublico(idPublico)
+                .filter(escopoUnidadeService::pacientePertenceAoEscopo)
                 .orElseThrow(() -> new DatabaseException("Paciente não encontrado!"));
 
         paciente.setStatusPaciente(StatusPaciente.INATIVO);
@@ -130,6 +131,7 @@ public class PacienteServiceImpl implements PacienteService{
     @Override
     public PacienteDTO findById(UUID idPublico) {
         Paciente paciente = pacienteRepository.findByIdPublico(idPublico)
+                .filter(escopoUnidadeService::pacientePertenceAoEscopo)
                 .orElseThrow(() -> new ResourceNotFoundException(idPublico));
         return new PacienteDTO(paciente);
     }
@@ -138,7 +140,7 @@ public class PacienteServiceImpl implements PacienteService{
     public PacienteListaResponseDTO pesquisar(String q, ClassificacaoRisco classificacao, StatusPaciente status,
             TipoAcompanhamento tipo, int page, int size) {
         size = Math.min(Math.max(size, 1), 50); page = Math.max(page, 0);
-        Specification<Paciente> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        Specification<Paciente> spec = escopoUnidadeService.specificationPaciente();
         if (q != null && !q.isBlank()) {
             String termo=q.trim(), digitos=termo.replaceAll("\\D", "");
             if ((!digitos.isEmpty() && digitos.length()!=11 && digitos.length()!=15) || (digitos.isEmpty() && termo.length()<3))
@@ -152,7 +154,8 @@ public class PacienteServiceImpl implements PacienteService{
         if (tipo!=null) spec=spec.and((r,c,b)->b.equal(r.get("tipoAcompanhamento"),tipo));
         Sort prioridade=Sort.by(Sort.Order.desc("classificacaoRisco"), Sort.Order.desc("countFaltas"), Sort.Order.asc("nome"));
         var resultado=pacienteRepository.findAll(spec, PageRequest.of(page,size,prioridade));
-        var ativos=pacienteRepository.findByStatusPaciente(StatusPaciente.ATIVO);
+        var ativos=pacienteRepository.findAll(escopoUnidadeService.<Paciente>specificationPaciente()
+                .and((r,c,b)->b.equal(r.get("statusPaciente"),StatusPaciente.ATIVO)));
         var resumo=new PacienteResumoDTO(ativos.size(), ativos.stream().filter(p->p.getClassificacaoRisco()==ClassificacaoRisco.AMARELO).count(),
                 ativos.stream().filter(p->p.getClassificacaoRisco()==ClassificacaoRisco.VERMELHO).count(),
                 ativos.stream().filter(p->politicaClassificacao.semPresencaRecente(p, LocalDate.now())).count());
@@ -162,7 +165,7 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public PacienteDetalheDTO findDetalhe(UUID idPublico) {
-        Paciente p=pacienteRepository.findByIdPublico(idPublico).orElseThrow(()->new ResourceNotFoundException(idPublico));
+        Paciente p=pacienteRepository.findByIdPublico(idPublico).filter(escopoUnidadeService::pacientePertenceAoEscopo).orElseThrow(()->new ResourceNotFoundException(idPublico));
         var proximo=agendamentoRepository.findFirstByPacienteAndDataAgendamentoGreaterThanEqualAndSituacaoAtendimentoInOrderByDataAgendamentoAscHoraAtendimentoAsc(
                 p, LocalDate.now(), List.of(SituacaoAtendimento.AGENDADO, SituacaoAtendimento.REMARCADO))
                 .map(a->new ProximoAgendamentoDTO(a.getId(),a.getDataAgendamento(),a.getHoraAtendimento(),a.getSituacaoAtendimento())).orElse(null);
@@ -174,7 +177,7 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public List<AgendamentoDTO> listarAgendamentos(UUID idPublico) {
-        Paciente p=pacienteRepository.findByIdPublico(idPublico).orElseThrow(()->new ResourceNotFoundException(idPublico));
+        Paciente p=pacienteRepository.findByIdPublico(idPublico).filter(escopoUnidadeService::pacientePertenceAoEscopo).orElseThrow(()->new ResourceNotFoundException(idPublico));
         return agendamentoRepository.findDetalhesByPaciente(p).stream().map(a->new AgendamentoDTO(a.getId(),a.getUsuario().getIdPublico(),
                 a.getUsuario().getNome(),p.getIdPublico(),p.getNome(),p.getTipoAcompanhamento(),a.getDataAgendamento(),
                 a.getTurnoAgendamento(),a.getHoraAtendimento(),a.getSituacaoAtendimento(),
@@ -183,7 +186,7 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public List<PacienteDTO> findAll() {
-        List<Paciente> list = pacienteRepository.findAll();
+        List<Paciente> list = pacienteRepository.findAll(escopoUnidadeService.<Paciente>specificationPaciente());
         return list.stream()
                 .map(PacienteDTO::new)
                 .toList();
@@ -202,6 +205,7 @@ public class PacienteServiceImpl implements PacienteService{
                     DocumentoUtil.normalizarCPF(pacienteDTO.cpf());
 
             pacienteRepository.findByCpf(cpfNormalizado).ifPresent(p -> {
+                escopoUnidadeService.validarAcesso(p);
                 if (!Objects.equals(
                         p.getIdPublico(),
                         pacienteDTO.idPublico()
@@ -220,6 +224,7 @@ public class PacienteServiceImpl implements PacienteService{
                     DocumentoUtil.normalizarCNS(pacienteDTO.cns());
 
             pacienteRepository.findByCns(cnsNormalizado).ifPresent(p -> {
+                escopoUnidadeService.validarAcesso(p);
                 if (!Objects.equals(
                         p.getIdPublico(),
                         pacienteDTO.idPublico()
@@ -243,6 +248,7 @@ public class PacienteServiceImpl implements PacienteService{
                     p.getIdPublico(),
                     pacienteDTO.idPublico()
             ));
+            similares.removeIf(p -> !escopoUnidadeService.pacientePertenceAoEscopo(p));
 
             if (!similares.isEmpty()) {
                 List<PacienteDTO> similaresDTO = similares.stream()
@@ -261,7 +267,8 @@ public class PacienteServiceImpl implements PacienteService{
     @Override
     public PacienteDTO findByCns(String cns) {
         String cnsNormalizado = DocumentoUtil.normalizarCNS(cns);
-        Paciente paciente = pacienteRepository.findByCns(cnsNormalizado)
+        Paciente paciente = pacienteRepository.findOne(escopoUnidadeService.<Paciente>specificationPaciente()
+                .and((r,q,cb)->cb.equal(r.get("cns"), cnsNormalizado)))
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CNS informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 
@@ -270,7 +277,8 @@ public class PacienteServiceImpl implements PacienteService{
     @Override
     public PacienteDTO findByCpf(String cpf) {
         String cpfNormalizado = DocumentoUtil.normalizarCPF(cpf);
-        Paciente paciente = pacienteRepository.findByCpf(cpfNormalizado)
+        Paciente paciente = pacienteRepository.findOne(escopoUnidadeService.<Paciente>specificationPaciente()
+                .and((r,q,cb)->cb.equal(r.get("cpf"), cpfNormalizado)))
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado com o CPF informado."));
         return pacienteMapper.toPacienteDTO(paciente);
 
@@ -278,7 +286,8 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public List<PacienteDTO> findByNome(String nome) {
-        List<Paciente> pacientes = pacienteRepository.findByNomeContainingIgnoreCase(nome);
+        List<Paciente> pacientes = pacienteRepository.findAll(escopoUnidadeService.<Paciente>specificationPaciente()
+                .and((r,q,cb)->cb.like(cb.lower(r.get("nome")), "%" + nome.toLowerCase() + "%")));
         
         return pacientes.stream()
                 .map(pacienteMapper::toPacienteDTO)
@@ -288,7 +297,8 @@ public class PacienteServiceImpl implements PacienteService{
 
     @Override
     public PacienteDTO findByNomeMae(String nomeMae) {
-        var paciente = pacienteRepository.findByNomeMae(nomeMae).orElse(null);
+        var paciente = pacienteRepository.findAll(escopoUnidadeService.<Paciente>specificationPaciente()
+                .and((r,q,cb)->cb.equal(r.get("nomeMae"), nomeMae))).stream().findFirst().orElse(null);
 
         if(paciente == null){
             return null;
@@ -386,6 +396,7 @@ public class PacienteServiceImpl implements PacienteService{
     @Transactional
     public void encerrarAcompanhamento(UUID idPublico, EncerramentoPacienteDTO encerramento) {
         Paciente paciente = pacienteRepository.findByIdPublicoForUpdate(idPublico)
+                .filter(escopoUnidadeService::pacientePertenceAoEscopo)
                 .orElseThrow(() -> new ResourceNotFoundException(idPublico));
 
         if (encerramento.motivo() == MotivoEncerramento.OUTRO
@@ -412,6 +423,7 @@ public class PacienteServiceImpl implements PacienteService{
     @Transactional
     public void reativarAcompanhamento(UUID idPublico, ReativacaoPacienteDTO reativacao) {
         Paciente paciente = pacienteRepository.findByIdPublicoForUpdate(idPublico)
+                .filter(escopoUnidadeService::pacientePertenceAoEscopo)
                 .orElseThrow(() -> new ResourceNotFoundException(idPublico));
 
 
@@ -432,12 +444,15 @@ public class PacienteServiceImpl implements PacienteService{
     @Transactional
     public List<AlertaBuscaAtivaDTO> listarPacientesEmBuscaAtiva() {
         // Reclassificação sob demanda impede que a consulta dependa exclusivamente do scheduler.
-        pacienteRepository.findByStatusPaciente(StatusPaciente.ATIVO).forEach(p -> {
+        pacienteRepository.findAll(escopoUnidadeService.<Paciente>specificationPaciente()
+                .and((r,q,cb)->cb.equal(r.get("statusPaciente"),StatusPaciente.ATIVO))).forEach(p -> {
             calcularEAtualizarRisco(p);
             pacienteRepository.save(p);
         });
         return pacienteRepository
-                .findByStatusPacienteAndClassificacaoRisco(StatusPaciente.ATIVO, ClassificacaoRisco.VERMELHO)
+                .findAll(escopoUnidadeService.<Paciente>specificationPaciente().and((r,q,cb)->cb.and(
+                        cb.equal(r.get("statusPaciente"),StatusPaciente.ATIVO),
+                        cb.equal(r.get("classificacaoRisco"),ClassificacaoRisco.VERMELHO))))
                 .stream()
                 .map(this::montarAlertaBuscaAtiva)
                 .toList();

@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import com.pet.buscaativa.entities.enums.ClassificacaoRisco;
 import com.pet.buscaativa.entities.enums.StatusPaciente;
+import com.pet.buscaativa.entities.enums.CapsEnum;
 
 import jakarta.persistence.LockModeType;
 
@@ -87,4 +88,12 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long>, JpaSp
     List<Paciente> findPacientesPrioritarios(@Param("statusPaciente") StatusPaciente statusPaciente,
                                              @Param("classificacoes") List<ClassificacaoRisco> classificacoes,
                                              Pageable pageable);
+
+    List<Paciente> findByStatusPacienteAndClassificacaoRiscoAndUsfReferencia_Id(
+        StatusPaciente statusPaciente,
+        ClassificacaoRisco classificacaoRisco,
+        Long usfId);
+        
+    List<Paciente> findByStatusPacienteAndClassificacaoRiscoAndCapsReferencia(StatusPaciente statusPaciente, ClassificacaoRisco classificacaoRisco,
+        CapsEnum capsReferencia);
 }
