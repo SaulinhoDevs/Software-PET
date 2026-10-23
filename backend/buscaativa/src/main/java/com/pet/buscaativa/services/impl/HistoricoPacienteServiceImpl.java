@@ -75,6 +75,14 @@ public class HistoricoPacienteServiceImpl implements HistoricoPacienteService {
                 && registro.tipo() != TipoEventoHistoricoPaciente.PARTICIPACAO_GRUPO_TERAPEUTICO) {
             throw new ValidationException("Somente registros de busca ativa ou participação em grupo podem ser incluídos manualmente.");
         }
+    
+        
+        if (registro.tipo() == TipoEventoHistoricoPaciente.BUSCA_ATIVA
+            && (registro.descricao() == null || registro.descricao().isBlank())) {
+
+            throw new ValidationException(
+            "A descrição da busca ativa é obrigatória." );
+        }
 
         Paciente paciente = pacienteRepository.findByIdPublico(pacienteId)
                 .filter(escopoUnidadeService::pacientePertenceAoEscopo)

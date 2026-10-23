@@ -31,7 +31,7 @@ import { podeEditarPaciente } from '../../auth/permissoes';
     styleUrl: './detalhe-paciente.css'
 })
 export class DetalhePaciente implements OnInit {
-    detalhe ? : PacienteDetalhe;
+    detalhe?: PacienteDetalhe;
     id = '';
     carregando = true;
     erro = '';
@@ -39,6 +39,8 @@ export class DetalhePaciente implements OnInit {
     motivo = '';
     descricao = '';
     salvando = false;
+    sucesso = '';
+    erroModal = '';
     podeGerenciar = false;
     podeEditar = false;
     constructor(private route: ActivatedRoute, private router: Router, private service: PacienteService, usuario: UsuarioLogadoService) {
@@ -84,15 +86,15 @@ export class DetalhePaciente implements OnInit {
         if (h < new Date(h.getFullYear(), n.getMonth(), n.getDate())) i--;
         return i
     }
-    label(v ? : string) {
+    label(v?: string) {
         return (v || 'Não informado').replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, x => x.toUpperCase())
     }
-    data(v ? : string) {
+    data(v?: string) {
         return v ? new Intl.DateTimeFormat('pt-BR').format(new Date(v + 'T00:00:00')) : 'Sem presença registrada'
     }
     mask(v: string | undefined, t: 'cpf' | 'cns') {
         const d = (v || '').replace(/\D/g, '');
-        return t === 'cpf' ? `•••.${d.slice(3,6)}.${d.slice(6,9)}-••` : `•••••••••${d.slice(-6)}`
+        return t === 'cpf' ? `•••.${d.slice(3, 6)}.${d.slice(6, 9)}-••` : `•••••••••${d.slice(-6)}`
     }
     encerrar() {
         if (!this.motivo || this.motivo === 'OUTRO' && !this.descricao.trim()) return;
@@ -109,20 +111,43 @@ export class DetalhePaciente implements OnInit {
             }
         })
     }
+
+    abrirBuscaAtiva(): void {
+        this.descricao = '';
+        this.erroModal = '';
+        this.sucesso = '';
+        this.modal = 'busca';
+    }
     registrar() {
-        if (!this.descricao.trim()) return;
+        const descricao = this.descricao.trim();
+
+        this.erroModal = '';
+
+        if (!descricao) {
+            this.erroModal = 'Informe uma descrição para registrar a busca ativa.';
+            return;
+        }
+
         this.salvando = true;
-        this.service.registrarBuscaAtiva(this.id, this.descricao).subscribe({
+
+        this.service.registrarBuscaAtiva(this.id, descricao).subscribe({
             next: () => {
                 this.modal = '';
                 this.descricao = '';
-                this.salvando = false
+                this.erroModal = '';
+                this.salvando = false;
+
+                this.sucesso = 'Busca ativa registrada com sucesso.';
             },
-            error: () => {
-                this.erro = 'Não foi possível registrar a busca ativa.';
-                this.salvando = false
+
+            error: (e) => {
+                this.erroModal =
+                    e.error?.message ||
+                    'Não foi possível registrar a busca ativa. Tente novamente.';
+
+                this.salvando = false;
             }
-        })
+        });
     }
     abrirHistoricoPaciente() {
         this.router.navigate(['/pacientes/detalhes', this.id, 'historico'])
@@ -130,4 +155,6 @@ export class DetalhePaciente implements OnInit {
     @HostListener('document:keydown.escape') escape() {
         this.modal = ''
     }
+
+
 }

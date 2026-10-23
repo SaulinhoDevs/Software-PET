@@ -3,6 +3,48 @@
     color: #102033
 }
 
+.modal-error {
+    margin: 8px 0 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #b42334;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.feedback-toast {
+    position: fixed;
+    top: 90px;
+    right: 24px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 280px;
+    max-width: 420px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+    font-weight: 600;
+}
+
+.feedback-toast.success {
+    background: #ecfdf3;
+    border: 1px solid #abefc6;
+    color: #067647;
+}
+
+.feedback-toast button {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 18px;
+}
+
 .page {
     max-width: 1280px;
     margin: auto;

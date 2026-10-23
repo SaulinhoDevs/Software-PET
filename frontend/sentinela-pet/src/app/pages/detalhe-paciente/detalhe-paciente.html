@@ -1,4 +1,11 @@
 <main class="page" *ngIf="detalhe as d">
+  <div *ngIf="sucesso" class="feedback-toast success" role="status">
+    <span>✓</span>
+    {{ sucesso }}
+    <button type="button" aria-label="Fechar mensagem" (click)="sucesso=''">
+      ×
+    </button>
+  </div>
   <header class="patient-head">
     <div class="identity"><span class="avatar">{{iniciais()}}</span>
       <div>
@@ -7,9 +14,9 @@
           não informada'}}</p>
       </div>
     </div>
-    <div class="head-actions"><a routerLink="/pacientes">Voltar</a><a *ngIf="podeEditar" [routerLink]="['/pacientes/editar',id]"
-        class="primary">Editar dados</a><button *ngIf="ativo&&podeGerenciar" class="danger"
-        (click)="modal='encerrar'">Encerrar acompanhamento</button></div>
+    <div class="head-actions"><a routerLink="/pacientes">Voltar</a><a *ngIf="podeEditar"
+        [routerLink]="['/pacientes/editar',id]" class="primary">Editar dados</a><button *ngIf="ativo&&podeGerenciar"
+        class="danger" (click)="modal='encerrar'">Encerrar acompanhamento</button></div>
   </header>
   <section class="summary">
     <div><small>CLASSIFICAÇÃO ATUAL</small><b
@@ -126,12 +133,14 @@
         <p>{{d.classificacaoRisco==='VERMELHO'?'Faltas recorrentes ou ausência conforme critérios do
           sistema.':d.classificacaoRisco==='AMARELO'?'Acompanhe presença e próximos atendimentos.':'Sem alerta de busca
           ativa no momento.'}}</p><button *ngIf="ativo&&d.classificacaoRisco==='VERMELHO'&&podeGerenciar"
-          class="primary" (click)="descricao='';modal='busca'">Registrar busca ativa</button>
+          class="primary" (click)="abrirBuscaAtiva()">
+          Registrar busca ativa
+        </button>
       </section>
       <section class="card quick">
         <h2>Ações rápidas</h2><a [routerLink]="['/pacientes/detalhes',id,'historico']">Ver histórico completo</a><a
-          routerLink="/agenda/novo" [queryParams]="{pacienteId:id}">Novo agendamento</a><a
-          *ngIf="podeEditar" [routerLink]="['/pacientes/editar',id]">Atualizar contato</a>
+          routerLink="/agenda/novo" [queryParams]="{pacienteId:id}">Novo agendamento</a><a *ngIf="podeEditar"
+          [routerLink]="['/pacientes/editar',id]">Atualizar contato</a>
       </section>
     </aside>
   </div>
@@ -148,10 +157,26 @@
           <option value="ABANDONO_TRATAMENTO">Abandono de tratamento</option>
           <option value="OBITO">Óbito</option>
           <option value="OUTRO">Outro</option>
-        </select></label></ng-container><label *ngIf="modal==='busca'||motivo==='OUTRO'">Descrição do registro<textarea
-        [(ngModel)]="descricao"></textarea></label>
+        </select></label></ng-container><label *ngIf="modal==='busca'||motivo==='OUTRO'">
+      Descrição do registro
+
+      <textarea [(ngModel)]="descricao" maxlength="2000" placeholder="Descreva a ação realizada durante a busca ativa">
+  </textarea>
+    </label>
+
+    <p *ngIf="modal === 'busca' && erroModal" class="modal-error" role="alert">
+      {{ erroModal }}
+    </p>
     <div><button (click)="modal=''">Cancelar</button><button class="danger" [disabled]="salvando"
-        (click)="modal==='encerrar'?encerrar():registrar()">{{modal==='encerrar'?'Confirmar
-        encerramento':'Registrar'}}</button></div>
+        (click)="modal==='encerrar'?encerrar():registrar()">
+
+        {{
+        salvando
+        ? 'Registrando...'
+        : modal === 'encerrar'
+        ? 'Confirmar encerramento'
+        : 'Registrar'
+        }}
+      </button></div>
   </section>
 </div>
